@@ -14,17 +14,20 @@ order_bp = Blueprint('orders', __name__)
 
 @order_bp.route('/', methods=['GET', 'OPTIONS'])
 @jwt_required()
-@optional_jwt
 def get_user_orders():
-    if g.user_id is None:
-        return jsonify([]) 
-    
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'}), 200
         
     try:
         print("🔍 GET /api/orders endpoint hit")
-        user_id = get_jwt_identity()
+        user_id_str = get_jwt_identity()
+        
+        # Convert string to integer
+        try:
+            user_id = int(user_id_str)
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Invalid user identity in token'}), 401
+            
         print(f"🔍 User ID from JWT: {user_id}")
         
         # Check if user exists
@@ -49,15 +52,23 @@ def get_user_orders():
         return jsonify({'error': 'Failed to fetch orders', 'details': str(e)}), 500
 
 @order_bp.route('/', methods=['POST'])
-@jwt_required()  # Use Flask-JWT-Extended's jwt_required
+@jwt_required()
 def create_order():
     try:
-        user_id = get_jwt_identity()
+        user_id_str = get_jwt_identity()
+        
+        # Convert string to integer
+        try:
+            user_id = int(user_id_str)
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Invalid user identity in token'}), 401
+            
         data = request.get_json()
         
         print(f"🔍 Creating order for user {user_id}")
         print(f"🔍 Order data: {data}")
         
+        # Rest of the function remains the same...
         # Validate required fields
         if not data or not data.get('items'):
             return jsonify({'error': 'Order items are required'}), 422

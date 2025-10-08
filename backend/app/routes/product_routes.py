@@ -2,7 +2,8 @@ from flask import Blueprint, request, jsonify
 from app import db
 from app.models.product import Product
 from app.schemas.product_schema import products_schema, product_schema
-from app.utils.permissions import jwt_required, admin_required
+from app.utils.permissions import admin_required
+from app.utils.permissions import jwt_required
 import traceback
 
 product_bp = Blueprint('products', __name__)
@@ -75,7 +76,6 @@ def get_categories():
         print(f"❌ Error in get_categories: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-# Admin routes remain the same...
 @product_bp.route('', methods=['POST'])
 @jwt_required
 @admin_required
