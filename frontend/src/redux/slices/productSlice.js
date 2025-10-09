@@ -8,7 +8,7 @@ export const fetchProducts = createAsyncThunk(
       const response = await productAPI.getAll();
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || 'Failed to fetch products');
     }
   }
 );
@@ -20,7 +20,12 @@ const productSlice = createSlice({
     loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    // Add a reducer to clear products if needed
+    clearProducts: (state) => {
+      state.items = [];
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchProducts.pending, (state) => {
@@ -29,13 +34,15 @@ const productSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        // Make sure we're storing the products array properly
+        state.items = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.error || 'Failed to fetch products';
+        state.error = action.payload?.error || action.payload || 'Failed to fetch products';
       });
   },
 });
 
+export const { clearProducts } = productSlice.actions;
 export default productSlice.reducer;

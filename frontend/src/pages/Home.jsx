@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts } from '../redux/slices/productSlice';
@@ -14,92 +13,97 @@ const Home = () => {
   }, [dispatch]);
 
   if (loading) return (
-    <div className="loading-container">
-      <div className="loading-spinner"></div>
-      <p>Loading products...</p>
+    <div className="page-loading">
+      <div className="loading-wave">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <p>Loading amazing products...</p>
     </div>
   );
   
   if (error) return (
-    <div className="error-container">
-      <div className="error-icon">⚠️</div>
-      <h3>Connection Issue</h3>
-      <p>Unable to connect to the server. Please check if the backend is running.</p>
+    <div className="page-error">
+      <div className="error-illustration">🚨</div>
+      <h2>Oops! Something went wrong</h2>
+      <p>We're having trouble loading our products. Please check your connection and try again.</p>
       <button 
-        className="retry-button"
+        className="retry-btn"
         onClick={() => dispatch(fetchProducts())}
       >
-        Retry Connection
+        Try Again
       </button>
-      <div className="fallback-products">
-        <h4>Featured Items</h4>
-        <div className="fallback-grid">
-          <div className="fallback-card">
-            <div className="fallback-image"></div>
-            <h5>Fashion Item</h5>
-            <p>Available soon</p>
-          </div>
-          <div className="fallback-card">
-            <div className="fallback-image"></div>
-            <h5>Style Collection</h5>
-            <p>Available soon</p>
-          </div>
-          <div className="fallback-card">
-            <div className="fallback-image"></div>
-            <h5>Trending Now</h5>
-            <p>Available soon</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 
-  // Check if products is an array before mapping
   if (!products || !Array.isArray(products) || products.length === 0) {
     return (
-      <div className="error-container">
-        <div className="error-icon">📦</div>
-        <h3>No Products Available</h3>
-        <p>No products were loaded. Please try again later.</p>
+      <div className="page-empty">
+        <div className="empty-illustration">📦</div>
+        <h2>No Products Available</h2>
+        <p>It seems we're out of stock at the moment. Check back soon for new arrivals!</p>
         <button 
-          className="retry-button"
+          className="retry-btn"
           onClick={() => dispatch(fetchProducts())}
         >
-          Try Again
+          Refresh
         </button>
       </div>
     );
   }
 
   return (
-    <div className="home">
-      <div className="hero-section">
-        <div className="hero-content">
-          <h1 className="main-title">Welcome to Spaising's Store</h1>
-          <p className="hero-subtitle">Discover the latest fashion trends</p>
-        </div>
-      </div>
-      
-      <div className="products-section">
-        <div className="section-header">
-          <h2 className="section-title">Featured Collection</h2>
-          <div className="section-divider"></div>
+    <div className="home-page">
+      {/* Hero Section */}
+      <section className="hero">
+        <div className="hero-background">
+          <div className="hero-shape shape-1"></div>
+          <div className="hero-shape shape-2"></div>
+          <div className="hero-shape shape-3"></div>
         </div>
         
-        {products.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">🛍️</div>
-            <h3>No Products Found</h3>
-            <p>Check back later for new arrivals!</p>
+        <div className="hero-content">
+          <h1 className="hero-title">
+            Welcome to <span className="brand">Spaising's Store</span>
+          </h1>
+          <p className="hero-subtitle">
+            Discover exclusive fashion pieces that define your style
+          </p>
+          <div className="hero-stats">
+            <div className="stat">
+              <span className="stat-number">{products.length}+</span>
+              <span className="stat-label">Products</span>
+            </div>
+            <div className="stat">
+              <span className="stat-number">100%</span>
+              <span className="stat-label">Quality</span>
+            </div>
+            <div className="stat">
+              <span className="stat-number">24/7</span>
+              <span className="stat-label">Support</span>
+            </div>
           </div>
-        ) : (
+        </div>
+      </section>
+
+      {/* Products Section */}
+      <section className="products-showcase">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Featured Collection</h2>
+            <p className="section-subtitle">Handpicked items just for you</p>
+            <div className="section-decoration"></div>
+          </div>
+
           <div className="products-grid">
             {products.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      </section>
     </div>
   );
 };

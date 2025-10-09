@@ -17,7 +17,7 @@ const Products = () => {
   // Get unique categories
   const categories = [...new Set(products.map(product => product.category).filter(Boolean))];
 
-  // Filter products based on search and category
+  // Filter products
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -27,43 +27,61 @@ const Products = () => {
 
   if (loading) return (
     <div className="products-loading">
-      <div className="loading-spinner"></div>
-      <p>Loading products...</p>
+      <div className="loading-pulse">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <p>Discovering amazing products...</p>
     </div>
   );
   
   if (error) return (
     <div className="products-error">
-      <div className="error-icon">⚠️</div>
-      <div>Error: {error}</div>
+      <div className="error-graphic">⚠️</div>
+      <h2>Connection Error</h2>
+      <p>We're having trouble loading our collection. Please check your connection.</p>
+      <button 
+        className="retry-btn"
+        onClick={() => dispatch(fetchProducts())}
+      >
+        Retry Connection
+      </button>
     </div>
   );
 
   return (
     <div className="products-page">
-      {/* Animated Background */}
-      <div className="background-animation">
-        <div className="floating-shape shape-1"></div>
-        <div className="floating-shape shape-2"></div>
-        <div className="floating-shape shape-3"></div>
-        <div className="floating-shape shape-4"></div>
+      {/* Background Elements */}
+      <div className="page-background">
+        <div className="bg-circle circle-1"></div>
+        <div className="bg-circle circle-2"></div>
+        <div className="bg-circle circle-3"></div>
       </div>
-      
+
       <div className="products-container">
-        {/* Header Section */}
+        {/* Header */}
         <div className="products-header">
-          <h1 className="products-title">Our Collection</h1>
-          <p className="products-subtitle">Discover amazing fashion pieces curated just for you</p>
+          <div className="header-content">
+            <h1 className="page-title">Our Collection</h1>
+            <p className="page-subtitle">Explore our carefully curated selection of fashion items</p>
+          </div>
+          <div className="header-stats">
+            <div className="total-products">
+              <span className="count">{filteredProducts.length}</span>
+              <span className="label">Products</span>
+            </div>
+          </div>
         </div>
-        
-        {/* Search and Filter Section */}
-        <div className="products-filters-section">
-          <div className="filters-container">
+
+        {/* Filters */}
+        <div className="filters-section">
+          <div className="filter-group">
             <div className="search-box">
               <span className="search-icon">🔍</span>
               <input
                 type="text"
-                placeholder="Search products by name or description..."
+                placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
@@ -71,7 +89,7 @@ const Products = () => {
             </div>
             
             <div className="category-filter">
-              <span className="filter-icon">📁</span>
+              <span className="filter-icon">📂</span>
               <select 
                 value={selectedCategory} 
                 onChange={(e) => setSelectedCategory(e.target.value)}
@@ -82,17 +100,27 @@ const Products = () => {
                   <option key={category} value={category}>{category}</option>
                 ))}
               </select>
-              <div className="select-arrow">▼</div>
             </div>
           </div>
           
           <div className="results-info">
             Showing {filteredProducts.length} of {products.length} products
+            {(searchTerm || selectedCategory) && (
+              <button 
+                className="clear-filters"
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedCategory('');
+                }}
+              >
+                Clear filters
+              </button>
+            )}
           </div>
         </div>
 
         {/* Products Grid */}
-        <div className="products-grid-section">
+        <div className="products-content">
           {filteredProducts.length > 0 ? (
             <div className="products-grid">
               {filteredProducts.map(product => (
@@ -100,21 +128,19 @@ const Products = () => {
               ))}
             </div>
           ) : (
-            <div className="no-products">
-              <div className="no-products-icon">👗</div>
-              <h3>No Products Found</h3>
-              <p>We couldn't find any products matching your search criteria.</p>
-              <div className="no-products-actions">
-                <button 
-                  onClick={() => {
-                    setSearchTerm('');
-                    setSelectedCategory('');
-                  }}
-                  className="reset-filters-btn"
-                >
-                  Reset Filters
-                </button>
-              </div>
+            <div className="no-results">
+              <div className="no-results-icon">🔍</div>
+              <h3>No products found</h3>
+              <p>Try adjusting your search or filter criteria</p>
+              <button 
+                className="reset-filters-btn"
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedCategory('');
+                }}
+              >
+                Reset All Filters
+              </button>
             </div>
           )}
         </div>
