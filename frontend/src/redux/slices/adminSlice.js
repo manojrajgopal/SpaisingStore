@@ -18,9 +18,12 @@ export const fetchAdminProducts = createAsyncThunk(
   'admin/fetchProducts',
   async (_, { rejectWithValue }) => {
     try {
+      console.log('🔄 Fetching admin products...');
       const response = await adminAPI.getProducts();
+      console.log('📦 Admin products response:', response.data);
       return response.data;
     } catch (error) {
+      console.error('❌ Error fetching admin products:', error);
       return rejectWithValue(error.response.data);
     }
   }
@@ -100,6 +103,14 @@ const adminSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    // Add a manual update for testing
+    updateProductStock: (state, action) => {
+      const { productId, stockQuantity } = action.payload;
+      const product = state.products.find(p => p.id === productId);
+      if (product) {
+        product.stock_quantity = stockQuantity;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -117,6 +128,7 @@ const adminSlice = createSlice({
       })
       // Fetch Products
       .addCase(fetchAdminProducts.fulfilled, (state, action) => {
+        console.log('🔄 Storing products in state:', action.payload);
         state.products = action.payload;
       })
       // Create Product
@@ -146,5 +158,5 @@ const adminSlice = createSlice({
   },
 });
 
-export const { clearError } = adminSlice.actions;
+export const { clearError, updateProductStock } = adminSlice.actions;
 export default adminSlice.reducer;

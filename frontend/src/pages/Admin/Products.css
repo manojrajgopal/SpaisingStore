@@ -210,8 +210,15 @@
 .name-col { min-width: 200px; }
 .category-col { width: 120px; }
 .price-col { width: 100px; }
-.stock-col { width: 120px; }
-.actions-col { width: 150px; }
+.stock-col { 
+  width: 140px; /* Increased width to prevent overlapping */
+  min-width: 140px;
+}
+
+.actions-col { 
+  width: 160px; /* Slightly increased to accommodate buttons */
+  min-width: 160px;
+}
 
 /* Product Image */
 .product-image {
@@ -269,6 +276,12 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: inline-block;
+  min-width: 100px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stock-badge.in-stock {
@@ -287,6 +300,7 @@
 .action-buttons {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: nowrap;
 }
 
 .edit-btn, .delete-btn {
@@ -301,6 +315,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .edit-btn {
@@ -542,6 +557,27 @@
     padding: 1rem;
   }
   
+  .stock-col {
+    width: 120px;
+    min-width: 120px;
+  }
+
+  .actions-col {
+    width: 140px;
+    min-width: 140px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  
+  .edit-btn, .delete-btn {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.75rem;
+    justify-content: center;
+  }
+
   .products-title {
     font-size: 2.5rem;
   }
@@ -592,4 +628,50 @@
     padding: 0.5rem 0.6rem;
     font-size: 0.75rem;
   }
+
+  .stock-badge {
+    min-width: 80px;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+  }
+}
+
+.stock-cell {
+  width: 140px;
+  min-width: 140px;
+  text-align: center;
+}
+
+.stock-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  min-width: 110px;
+  text-align: center;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.stock-badge.in-stock {
+  background: rgba(67, 233, 123, 0.15);
+  color: #27ae60;
+  border-color: rgba(67, 233, 123, 0.3);
+}
+
+.stock-badge.out-of-stock {
+  background: rgba(255, 107, 107, 0.15);
+  color: #e74c3c;
+  border-color: rgba(255, 107, 107, 0.3);
+}
+
+/* Debug info - remove in production */
+.stock-cell > div {
+  font-size: 10px;
+  color: #888;
+  margin-top: 4px;
+  font-family: monospace;
 }

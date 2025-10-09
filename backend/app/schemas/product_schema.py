@@ -1,3 +1,4 @@
+# product_schema.py
 from app import ma
 from app.models.product import Product
 
@@ -9,6 +10,7 @@ class ProductSchema(ma.SQLAlchemyAutoSchema):
     # Ensure both image fields are included
     image_url = ma.String()
     image_data = ma.String()
+    stock_quantity = ma.Integer() 
     
     def get_image_url(self, obj):
         return obj.get_image_url()

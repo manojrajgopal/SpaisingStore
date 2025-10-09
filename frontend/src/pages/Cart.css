@@ -429,3 +429,56 @@
     justify-content: center;
   }
 }
+
+/* Quantity input group */
+.quantity-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quantity-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.quantity-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.quantity-btn:hover:not(:disabled) {
+  background: #5a6fd8;
+}
+
+.updating-text {
+  font-size: 0.8rem;
+  color: #667eea;
+  margin-left: 0.5rem;
+}
+
+.item-image-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}

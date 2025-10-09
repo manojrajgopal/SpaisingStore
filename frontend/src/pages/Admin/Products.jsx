@@ -16,6 +16,21 @@ const Products = () => {
     dispatch(fetchAdminProducts());
   }, [dispatch]);
 
+  // Debug: Check what data we're receiving
+  useEffect(() => {
+    if (products.length > 0) {
+      console.log('📦 Products data:', products);
+      console.log('🔍 First product stock details:', {
+        id: products[0].id,
+        name: products[0].name,
+        stock_quantity: products[0].stock_quantity,
+        stock: products[0].stock,
+        quantity: products[0].quantity,
+        allProps: Object.keys(products[0])
+      });
+    }
+  }, [products]);
+
   // Get the correct image URL for display
   const getProductImage = (product) => {
     if (product.image_url) {
@@ -28,6 +43,28 @@ const Products = () => {
       return `data:image/jpeg;base64,${product.image_data}`;
     }
     return '/placeholder-image.jpg';
+  };
+
+  // Safely get stock quantity - check multiple possible property names
+  const getStockQuantity = (product) => {
+    console.log(`🔍 Checking stock for product ${product.id}:`, {
+      stock_quantity: product.stock_quantity,
+      stock: product.stock,
+      quantity: product.quantity
+    });
+
+    // Check all possible property names for stock
+    const stock = 
+      product.stock_quantity !== undefined ? product.stock_quantity :
+      product.stock !== undefined ? product.stock :
+      product.quantity !== undefined ? product.quantity :
+      0;
+
+    console.log(`📦 Final stock for ${product.name}:`, stock);
+    
+    // Ensure it's a number
+    const numericStock = Number(stock);
+    return isNaN(numericStock) ? 0 : numericStock;
   };
 
   const handleCreateProduct = async (productData) => {
@@ -95,6 +132,12 @@ const Products = () => {
             <p className="products-subtitle">Manage your product catalog and inventory</p>
             <div className="products-stats">
               <span className="stat">Total Products: {products.length}</span>
+              <span className="stat">
+                In Stock: {products.filter(p => getStockQuantity(p) > 0).length}
+              </span>
+              <span className="stat">
+                Out of Stock: {products.filter(p => getStockQuantity(p) === 0).length}
+              </span>
             </div>
           </div>
           <button 
@@ -131,72 +174,83 @@ const Products = () => {
                       <th className="name-col">Product Name</th>
                       <th className="category-col">Category</th>
                       <th className="price-col">Price</th>
-                      <th className="stock-col">Stock</th>
+                      <th className="stock-col">Stock Status</th>
                       <th className="actions-col">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {products.map(product => (
-                      <tr key={product.id} className="product-row">
-                        <td className="image-cell">
-                          <div className="product-image">
-                            <img 
-                              src={getProductImage(product)} 
-                              alt={product.name}
-                              className="product-thumbnail"
-                              onError={(e) => {
-                                e.target.src = '/placeholder-image.jpg';
-                                console.warn('Image failed to load for product:', product.name);
-                              }}
-                            />
-                          </div>
-                        </td>
-                        <td className="name-cell">
-                          <div className="product-name">{product.name}</div>
-                          {product.description && (
-                            <div className="product-description">
-                              {product.description.length > 50 
-                                ? `${product.description.substring(0, 50)}...` 
-                                : product.description
-                              }
+                    {products.map(product => {
+                      const stockQuantity = getStockQuantity(product);
+                      const isInStock = stockQuantity > 0;
+                      
+                      return (
+                        <tr key={product.id} className="product-row">
+                          <td className="image-cell">
+                            <div className="product-image">
+                              <img 
+                                src={getProductImage(product)} 
+                                alt={product.name}
+                                className="product-thumbnail"
+                                onError={(e) => {
+                                  e.target.src = '/placeholder-image.jpg';
+                                }}
+                              />
                             </div>
-                          )}
-                        </td>
-                        <td className="category-cell">
-                          <span className="category-badge">
-                            {product.category || 'Uncategorized'}
-                          </span>
-                        </td>
-                        <td className="price-cell">
-                          <span className="price">${product.price}</span>
-                        </td>
-                        <td className="stock-cell">
-                          <span className={`stock-badge ${product.stock_quantity > 0 ? 'in-stock' : 'out-of-stock'}`}>
-                            {product.stock_quantity > 0 ? `${product.stock_quantity} in stock` : 'Out of stock'}
-                          </span>
-                        </td>
-                        <td className="actions-cell">
-                          <div className="action-buttons">
-                            <button 
-                              onClick={() => setEditingProduct(product)}
-                              className="edit-btn"
-                              title="Edit Product"
+                          </td>
+                          <td className="name-cell">
+                            <div className="product-name">{product.name}</div>
+                            {product.description && (
+                              <div className="product-description">
+                                {product.description.length > 50 
+                                  ? `${product.description.substring(0, 50)}...` 
+                                  : product.description
+                                }
+                              </div>
+                            )}
+                          </td>
+                          <td className="category-cell">
+                            <span className="category-badge">
+                              {product.category || 'Uncategorized'}
+                            </span>
+                          </td>
+                          <td className="price-cell">
+                            <span className="price">${product.price}</span>
+                          </td>
+                          <td className="stock-cell">
+                            <span 
+                              className={`stock-badge ${isInStock ? 'in-stock' : 'out-of-stock'}`}
+                              title={`Stock quantity: ${stockQuantity}`}
                             >
-                              <span className="action-icon">✏️</span>
-                              Edit
-                            </button>
-                            <button 
-                              onClick={() => setDeleteConfirm(product)}
-                              className="delete-btn"
-                              title="Delete Product"
-                            >
-                              <span className="action-icon">🗑️</span>
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                              {isInStock ? `${stockQuantity} in stock` : 'Out of stock'}
+                            </span>
+                            {/* Debug display - remove in production */}
+                            <div style={{fontSize: '10px', color: '#666', marginTop: '4px'}}>
+                              ID: {product.id} | Raw: {product.stock_quantity}
+                            </div>
+                          </td>
+                          <td className="actions-cell">
+                            <div className="action-buttons">
+                              <button 
+                                onClick={() => setEditingProduct(product)}
+                                className="edit-btn"
+                                title="Edit Product"
+                              >
+                                <span className="action-icon">✏️</span>
+                                Edit
+                              </button>
+                              <button 
+                                onClick={() => setDeleteConfirm(product)}
+                                className="delete-btn"
+                                title="Delete Product"
+                              >
+                                <span className="action-icon">🗑️</span>
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

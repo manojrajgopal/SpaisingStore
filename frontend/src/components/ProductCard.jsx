@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart } from '../redux/slices/cartSlice';
+import { addToCartBackend } from '../redux/slices/cartSlice';
 import './ProductCard.css';
 
 const ProductCard = ({ product }) => {
@@ -19,7 +19,7 @@ const ProductCard = ({ product }) => {
     return null;
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!user) {
       alert('Please login to add items to cart');
       return;
@@ -27,17 +27,14 @@ const ProductCard = ({ product }) => {
 
     setIsAdding(true);
     
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image_url: product.image_url || getImageUrl(),
-      quantity: 1
-    };
-
-    dispatch(addToCart(cartItem));
-    
-    setTimeout(() => setIsAdding(false), 500);
+    try {
+      await dispatch(addToCartBackend({ productId: product.id, quantity: 1 })).unwrap();
+      // Success message can be shown here if needed
+    } catch (error) {
+      alert('Failed to add to cart: ' + (error.message || 'Unknown error'));
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   const isOutOfStock = product.stock_quantity === 0;
