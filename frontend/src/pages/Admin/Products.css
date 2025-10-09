@@ -211,12 +211,12 @@
 .category-col { width: 120px; }
 .price-col { width: 100px; }
 .stock-col { 
-  width: 140px; /* Increased width to prevent overlapping */
+  width: 140px;
   min-width: 140px;
 }
 
 .actions-col { 
-  width: 160px; /* Slightly increased to accommodate buttons */
+  width: 160px;
   min-width: 160px;
 }
 
@@ -268,32 +268,37 @@
   font-size: 1.1rem;
 }
 
-/* Stock Badge */
+/* Stock Badge - SINGLE DEFINITION */
+.stock-cell {
+  width: 140px;
+  min-width: 140px;
+  text-align: center;
+}
+
 .stock-badge {
-  padding: 0.4rem 0.8rem;
+  padding: 0.5rem 1rem;
   border-radius: 12px;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: inline-block;
-  min-width: 100px;
+  min-width: 110px;
   text-align: center;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  border: 1px solid transparent;
 }
 
 .stock-badge.in-stock {
-  background: rgba(67, 233, 123, 0.1);
-  color: #43e97b;
-  border: 1px solid rgba(67, 233, 123, 0.2);
+  background: rgba(67, 233, 123, 0.15);
+  color: #27ae60;
+  border-color: rgba(67, 233, 123, 0.3);
 }
 
 .stock-badge.out-of-stock {
-  background: rgba(255, 107, 107, 0.1);
-  color: #ff6b6b;
-  border: 1px solid rgba(255, 107, 107, 0.2);
+  background: rgba(255, 107, 107, 0.15);
+  color: #e74c3c;
+  border-color: rgba(255, 107, 107, 0.3);
 }
 
 /* Action Buttons */
@@ -634,38 +639,6 @@
     font-size: 0.7rem;
     padding: 0.3rem 0.6rem;
   }
-}
-
-.stock-cell {
-  width: 140px;
-  min-width: 140px;
-  text-align: center;
-}
-
-.stock-badge {
-  padding: 0.5rem 1rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: inline-block;
-  min-width: 110px;
-  text-align: center;
-  white-space: nowrap;
-  border: 1px solid transparent;
-}
-
-.stock-badge.in-stock {
-  background: rgba(67, 233, 123, 0.15);
-  color: #27ae60;
-  border-color: rgba(67, 233, 123, 0.3);
-}
-
-.stock-badge.out-of-stock {
-  background: rgba(255, 107, 107, 0.15);
-  color: #e74c3c;
-  border-color: rgba(255, 107, 107, 0.3);
 }
 
 /* Debug info - remove in production */

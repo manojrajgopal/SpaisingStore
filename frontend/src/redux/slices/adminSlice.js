@@ -77,11 +77,48 @@ export const fetchAdminUsers = createAsyncThunk(
   }
 );
 
+// Add these async thunks to adminSlice.js
+export const updateAdminUser = createAsyncThunk(
+  'admin/updateUser',
+  async ({ userId, userData }, { rejectWithValue }) => {
+    try {
+      const response = await adminAPI.updateUser(userId, userData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const deleteAdminUser = createAsyncThunk(
+  'admin/deleteUser',
+  async (userId, { rejectWithValue }) => {
+    try {
+      await adminAPI.deleteUser(userId);
+      return userId;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
 export const fetchAdminOrders = createAsyncThunk(
   'admin/fetchOrders',
   async (_, { rejectWithValue }) => {
     try {
       const response = await adminAPI.getOrders();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const updateOrderStatus = createAsyncThunk(
+  'admin/updateOrderStatus',
+  async ({ orderId, status }, { rejectWithValue }) => {
+    try {
+      const response = await adminAPI.updateOrderStatus(orderId, { status });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -154,7 +191,28 @@ const adminSlice = createSlice({
       // Fetch Orders
       .addCase(fetchAdminOrders.fulfilled, (state, action) => {
         state.orders = action.payload;
-      });
+      })
+
+      // Add these cases to extraReducers in adminSlice.js
+      .addCase(updateAdminUser.fulfilled, (state, action) => {
+        const updatedUser = action.payload.user;
+        const index = state.users.findIndex(u => u.id === updatedUser.id);
+        if (index !== -1) {
+          state.users[index] = updatedUser;
+        }
+      })
+
+      .addCase(deleteAdminUser.fulfilled, (state, action) => {
+        state.users = state.users.filter(u => u.id !== action.payload);
+      })
+
+      .addCase(updateOrderStatus.fulfilled, (state, action) => {
+        const updatedOrder = action.payload.order;
+        const index = state.orders.findIndex(o => o.id === updatedOrder.id);
+        if (index !== -1) {
+          state.orders[index] = updatedOrder;
+        }
+      })
   },
 });
 

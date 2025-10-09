@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAdminOrders } from '../../redux/slices/adminSlice';
+import { fetchAdminOrders, updateOrderStatus } from '../../redux/slices/adminSlice';
 import './Orders.css';
 
 const Orders = () => {
   const dispatch = useDispatch();
   const { orders, loading } = useSelector(state => state.admin);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [updatingStatus, setUpdatingStatus] = useState(null);
+
+  const statusOptions = [
+    { value: 'pending', label: '⏳ Pending', color: 'status-pending' },
+    { value: 'processing', label: '⚙️ Processing', color: 'status-processing' },
+    { value: 'shipped', label: '🚚 Shipped', color: 'status-shipped' },
+    { value: 'delivered', label: '✅ Delivered', color: 'status-completed' },
+    { value: 'cancelled', label: '❌ Cancelled', color: 'status-cancelled' }
+  ];
 
   useEffect(() => {
     dispatch(fetchAdminOrders());
@@ -14,21 +23,34 @@ const Orders = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return 'status-completed';
+      case 'delivered': return 'status-completed';
       case 'shipped': return 'status-shipped';
       case 'processing': return 'status-processing';
       case 'pending': return 'status-pending';
+      case 'cancelled': return 'status-cancelled';
       default: return 'status-pending';
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'completed': return '✅';
+      case 'delivered': return '✅';
       case 'shipped': return '🚚';
       case 'processing': return '⚙️';
       case 'pending': return '⏳';
+      case 'cancelled': return '❌';
       default: return '⏳';
+    }
+  };
+
+  const handleStatusUpdate = async (orderId, newStatus) => {
+    try {
+      setUpdatingStatus(orderId);
+      await dispatch(updateOrderStatus({ orderId, status: newStatus })).unwrap();
+      setUpdatingStatus(null);
+    } catch (error) {
+      alert('Failed to update order status: ' + error.message);
+      setUpdatingStatus(null);
     }
   };
 
@@ -92,9 +114,13 @@ const Orders = () => {
                       </div>
                     </div>
                     <div className="order-status">
-                      <span className={`status-badge ${getStatusColor(order.status)}`}>
+                      <span 
+                        className={`status-badge ${getStatusColor(order.status)} ${updatingStatus === order.id ? 'updating' : ''}`}
+                        onClick={() => setSelectedOrder(order)}
+                        title="Click to view details and update status"
+                      >
                         <span className="status-icon">{getStatusIcon(order.status)}</span>
-                        {order.status}
+                        {updatingStatus === order.id ? 'Updating...' : order.status}
                       </span>
                     </div>
                   </div>
@@ -207,6 +233,28 @@ const Orders = () => {
                           })}
                         </span>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Order Status Update */}
+                  <div className="order-detail-section">
+                    <h3>Order Status</h3>
+                    <div className="status-selector">
+                      <label>Update Status:</label>
+                      <select 
+                        value={selectedOrder.status} 
+                        onChange={(e) => handleStatusUpdate(selectedOrder.id, e.target.value)}
+                        disabled={updatingStatus === selectedOrder.id}
+                      >
+                        {statusOptions.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      {updatingStatus === selectedOrder.id && (
+                        <span className="updating-text">Updating...</span>
+                      )}
                     </div>
                   </div>
 

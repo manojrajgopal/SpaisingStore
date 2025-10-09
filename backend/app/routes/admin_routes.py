@@ -5,9 +5,9 @@ from app.models.user import User
 from app.models.order import Order
 from app.utils.permissions import admin_required
 from app.schemas.product_schema import products_schema, product_schema
-from app.schemas.user_schema import users_schema
+from app.schemas.user_schema import users_schema, user_schema  # Add user_schema import
 from app.schemas.order_schema import orders_schema
-from flask_jwt_extended import jwt_required as jwt_required_jwt  # Avoid name conflict
+from flask_jwt_extended import jwt_required, get_jwt_identity  # Add get_jwt_identity import
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -116,6 +116,79 @@ def get_all_users():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@admin_bp.route('/users/<int:user_id>', methods=['PUT'])
+@admin_required
+def update_user(user_id):
+    try:
+        user = User.query.get_or_404(user_id)
+        data = request.get_json()
+        
+        print(f"🔍 Updating user {user_id} with data: {data}")  # Debug log
+        
+        # Prevent admin from modifying their own admin status
+        current_user_id = get_jwt_identity()
+        print(f"🔍 Current user ID: {current_user_id}, Target user ID: {user_id}")  # Debug log
+        
+        if int(current_user_id) == user_id and 'is_admin' in data:
+            return jsonify({'error': 'Cannot modify your own admin status'}), 400
+        
+        # Update user fields
+        if 'first_name' in data:
+            user.first_name = data['first_name']
+        if 'last_name' in data:
+            user.last_name = data['last_name']
+        if 'email' in data:
+            # Check if email already exists
+            existing_user = User.query.filter_by(email=data['email']).first()
+            if existing_user and existing_user.id != user_id:
+                return jsonify({'error': 'Email already exists'}), 400
+            user.email = data['email']
+        if 'is_admin' in data:
+            user.is_admin = bool(data['is_admin'])
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'User updated successfully',
+            'user': user_schema.dump(user)
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error updating user {user_id}: {str(e)}")  # Debug log
+        return jsonify({'error': str(e)}), 400
+
+@admin_bp.route('/users/<int:user_id>', methods=['DELETE'])
+@admin_required
+def delete_user(user_id):
+    try:
+        user = User.query.get_or_404(user_id)
+        
+        # Prevent admin from deleting themselves
+        current_user_id = get_jwt_identity()
+        if int(current_user_id) == user_id:
+            return jsonify({'error': 'Cannot delete your own account'}), 400
+        
+        # Delete user's orders and order items first
+        from app.models.order import Order
+        from app.models.order_item import OrderItem
+        
+        orders = Order.query.filter_by(user_id=user_id).all()
+        for order in orders:
+            OrderItem.query.filter_by(order_id=order.id).delete()
+            db.session.delete(order)
+        
+        # Delete the user
+        db.session.delete(user)
+        db.session.commit()
+        
+        return jsonify({'message': 'User deleted successfully'})
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error deleting user {user_id}: {str(e)}")  # Debug log
+        return jsonify({'error': str(e)}), 400
+
 # Order Management
 @admin_bp.route('/orders', methods=['GET'])
 @admin_required
@@ -132,6 +205,29 @@ def get_all_orders():
         return jsonify(orders_data)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/orders/<int:order_id>/status', methods=['PUT'])
+@admin_required
+def update_order_status(order_id):
+    try:
+        order = Order.query.get_or_404(order_id)
+        data = request.get_json()
+        
+        if not data.get('status'):
+            return jsonify({'error': 'Status is required'}), 400
+            
+        if order.update_status(data['status']):
+            db.session.commit()
+            return jsonify({
+                'message': 'Order status updated successfully',
+                'order': order.to_dict()
+            })
+        else:
+            return jsonify({'error': 'Invalid status'}), 400
+            
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
 
 # Dashboard Stats
 @admin_bp.route('/stats', methods=['GET'])

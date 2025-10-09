@@ -15,4 +15,13 @@ export const adminAPI = {
   
   // Stats
   getStats: () => axiosClient.get('/admin/stats'),
+
+  updateUser: (userId, userData) => 
+    axiosClient.put(`/admin/users/${userId}`, userData),
+
+  deleteUser: (userId) => 
+    axiosClient.delete(`/admin/users/${userId}`),
+
+  updateOrderStatus: (orderId, statusData) => 
+    axiosClient.put(`/admin/orders/${orderId}/status`, statusData),
 };
