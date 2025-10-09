@@ -1,9 +1,9 @@
-from flask import Blueprint, request, jsonify, g
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
 from app.models.product import Product
 from app.models.user import User
-import json
+from datetime import datetime
 
 cart_bp = Blueprint('cart', __name__)
 
@@ -31,17 +31,24 @@ def get_cart():
         for item in cart:
             product = Product.query.get(item['product_id'])
             if product:
-                enriched_item = item.copy()
-                enriched_item['product_name'] = product.name
-                enriched_item['product_price'] = product.price
-                enriched_item['product_image'] = product.get_image_url()
-                enriched_item['available_stock'] = product.stock_quantity
+                enriched_item = {
+                    'id': product.id,
+                    'product_id': product.id,
+                    'name': product.name,
+                    'price': float(product.price),
+                    'quantity': item['quantity'],
+                    'image_url': product.image_url or product.get_image_url(),
+                    'available_stock': product.stock_quantity,
+                    'added_at': item.get('added_at')
+                }
                 enriched_cart.append(enriched_item)
+        
+        total_amount = sum(item['price'] * item['quantity'] for item in enriched_cart)
         
         return jsonify({
             'cart': enriched_cart,
-            'total_items': len(cart),
-            'total_amount': sum(item['quantity'] * item['price'] for item in cart)
+            'total_items': len(enriched_cart),
+            'total_amount': total_amount
         })
         
     except Exception as e:
@@ -56,11 +63,11 @@ def add_to_cart():
         data = request.get_json()
         
         # Validate required fields
-        if not data or not data.get('product_id') or not data.get('quantity'):
-            return jsonify({'error': 'Product ID and quantity are required'}), 422
+        if not data or not data.get('product_id'):
+            return jsonify({'error': 'Product ID is required'}), 422
         
         product_id = data['product_id']
-        quantity = int(data['quantity'])
+        quantity = int(data.get('quantity', 1))
         
         # Check if product exists and has enough stock
         product = Product.query.get(product_id)
@@ -86,18 +93,29 @@ def add_to_cart():
             cart.append({
                 'product_id': product_id,
                 'quantity': quantity,
-                'price': product.price,
+                'price': float(product.price),
                 'added_at': datetime.utcnow().isoformat()
             })
         
+        # Return updated cart
+        updated_cart = []
+        for item in cart:
+            product = Product.query.get(item['product_id'])
+            if product:
+                updated_cart.append({
+                    'id': product.id,
+                    'product_id': product.id,
+                    'name': product.name,
+                    'price': float(product.price),
+                    'quantity': item['quantity'],
+                    'image_url': product.image_url or product.get_image_url(),
+                    'available_stock': product.stock_quantity
+                })
+        
         return jsonify({
             'message': 'Product added to cart',
-            'cart_item': {
-                'product_id': product_id,
-                'quantity': quantity,
-                'product_name': product.name,
-                'price': product.price
-            }
+            'cart': updated_cart,
+            'total_items': len(updated_cart)
         })
         
     except Exception as e:
@@ -134,16 +152,12 @@ def update_cart_item():
             return jsonify({'error': 'Product not in cart'}), 404
         
         item['quantity'] = quantity
-        item['price'] = product.price  # Update price in case it changed
+        item['price'] = float(product.price)  # Update price in case it changed
         
         return jsonify({
             'message': 'Cart updated successfully',
-            'cart_item': {
-                'product_id': product_id,
-                'quantity': quantity,
-                'product_name': product.name,
-                'price': product.price
-            }
+            'product_id': product_id,
+            'quantity': quantity
         })
         
     except Exception as e:
@@ -158,7 +172,11 @@ def remove_from_cart(product_id):
         cart = get_cart_for_user(user_id)
         
         # Remove item from cart
+        initial_length = len(cart)
         cart[:] = [item for item in cart if item['product_id'] != product_id]
+        
+        if len(cart) == initial_length:
+            return jsonify({'error': 'Product not found in cart'}), 404
         
         return jsonify({
             'message': 'Product removed from cart',
@@ -176,7 +194,10 @@ def clear_cart():
         user_id = get_jwt_identity()
         user_carts[user_id] = []
         
-        return jsonify({'message': 'Cart cleared successfully'})
+        return jsonify({
+            'message': 'Cart cleared successfully',
+            'cart': []
+        })
         
     except Exception as e:
         print(f"❌ Error in clear_cart: {str(e)}")
