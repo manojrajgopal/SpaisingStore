@@ -3,6 +3,7 @@ from app.models.user import User
 from app.models.product import Product
 from app.models.order import Order
 from app.models.order_item import OrderItem
+from app.models.cart import Cart, CartItem
 
 # Now that all models are loaded, we can set up relationships
 from app import db
@@ -16,4 +17,4 @@ Order.order_items = db.relationship('OrderItem', backref='order', lazy=True, cas
 # Set up Product relationships
 Product.order_items = db.relationship('OrderItem', backref='product', lazy=True)
 
-__all__ = ['User', 'Product', 'Order', 'OrderItem']
+__all__ = ['User', 'Product', 'Order', 'OrderItem', 'Cart', 'CartItem']

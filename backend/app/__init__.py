@@ -2,7 +2,6 @@ from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_jwt_extended import JWTManager
-# from flask_mail import Mail
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
@@ -10,6 +9,8 @@ from marshmallow import ValidationError
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from flask_jwt_extended.exceptions import JWTExtendedException
 from flask_migrate import Migrate
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 migrate = Migrate()
 
@@ -17,7 +18,8 @@ migrate = Migrate()
 db = SQLAlchemy()
 ma = Marshmallow()
 jwt = JWTManager()
-# mail = Mail()
+
+limiter = Limiter(key_func=get_remote_address)
 
 def create_app():
     app = Flask(__name__)
@@ -33,11 +35,6 @@ def create_app():
     )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
-    # app.config['MAIL_SERVER'] = os.getenv('EMAIL_HOST')
-    # app.config['MAIL_PORT'] = int(os.getenv('EMAIL_PORT', 587))
-    # app.config['MAIL_USE_TLS'] = True
-    # app.config['MAIL_USERNAME'] = os.getenv('EMAIL_USER')
-    # app.config['MAIL_PASSWORD'] = os.getenv('EMAIL_PASSWORD')
 
     # -----------------------------
     # CORS Configuration
@@ -61,7 +58,7 @@ def create_app():
     ma.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
-    # mail.init_app(app)
+    limiter.init_app(app)
 
     from app.models.user import User
     from app.models.product import Product

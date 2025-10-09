@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from marshmallow import ValidationError
-from app import db
+from app import db, limiter
 from app.models.user import User
 from app.utils.validators import user_registration_schema, user_login_schema, validate_data  # ✅ Import validators
 
@@ -33,7 +33,10 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        access_token = create_access_token(identity=str(user.id))
+        access_token = create_access_token(
+            identity=str(user.id),
+            additional_claims={'is_admin': user.is_admin, 'email': user.email}
+        )
 
         return jsonify({
             'message': 'User registered successfully',
@@ -52,6 +55,7 @@ def register():
 # LOGIN ROUTE
 # -------------------------
 @auth_bp.route('/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def login():
     try:
         data = request.get_json()
@@ -63,7 +67,10 @@ def login():
         if not user or not user.check_password(data['password']):
             return jsonify({'error': 'Invalid credentials'}), 401
 
-        access_token = create_access_token(identity=str(user.id))
+        access_token = create_access_token(
+            identity=str(user.id),
+            additional_claims={'is_admin': user.is_admin, 'email': user.email}
+        )
 
         return jsonify({
             'message': 'Login successful',

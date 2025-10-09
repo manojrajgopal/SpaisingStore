@@ -14,7 +14,6 @@ def get_products():
         return jsonify({'status': 'ok'}), 200
     
     try:
-        print("🔍 GET /api/products endpoint hit")  # Debug log
         
         # Get query parameters for filtering
         category = request.args.get('category')
@@ -23,7 +22,6 @@ def get_products():
         max_price = request.args.get('max_price')
         
         query = Product.query
-        print(f"🔍 Initial query: {query}")  # Debug log
         
         if category:
             query = query.filter(Product.category == category)
@@ -40,40 +38,31 @@ def get_products():
             except ValueError:
                 return jsonify({'error': 'Invalid max_price format'}), 400
         
-        print(f"🔍 Final query: {query}")  # Debug log
         products = query.all()
-        print(f"🔍 Found {len(products)} products")  # Debug log
         
         # Use schema instead of to_dict() for consistency
         result = products_schema.dump(products)
-        print(f"🔍 Serialized result: {len(result)} items")  # Debug log
         
         return jsonify(result)
         
     except Exception as e:
-        print(f"❌ Error in get_products: {str(e)}")
-        print(f"🔍 Traceback: {traceback.format_exc()}")  # Detailed error info
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
 @product_bp.route('/<int:product_id>', methods=['GET'])
 def get_product(product_id):
     try:
-        print(f"🔍 GET /api/products/{product_id}")  # Debug log
         product = Product.query.get_or_404(product_id)
         return jsonify(product_schema.dump(product))
     except Exception as e:
-        print(f"❌ Error in get_product: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @product_bp.route('/categories', methods=['GET'])
 def get_categories():
     try:
-        print("🔍 GET /api/products/categories")  # Debug log
         categories = db.session.query(Product.category).distinct().all()
         categories = [cat[0] for cat in categories if cat[0]]
         return jsonify(categories)
     except Exception as e:
-        print(f"❌ Error in get_categories: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @product_bp.route('', methods=['POST'])

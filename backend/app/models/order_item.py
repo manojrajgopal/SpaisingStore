@@ -11,9 +11,6 @@ class OrderItem(db.Model):
     product_name = db.Column(db.String(255), nullable=False)
 
     def to_dict(self):
-        from app.models.product import Product  # Import here to avoid circular imports
-        
-        product = Product.query.get(self.product_id)
         
         return {
             'id': self.id,
@@ -21,5 +18,5 @@ class OrderItem(db.Model):
             'product_id': self.product_id,
             'quantity': self.quantity,
             'price': self.price,
-            'product_name': product.name if product else None
+            'product_name': self.product_name  
         }

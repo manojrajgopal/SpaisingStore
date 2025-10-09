@@ -9,7 +9,7 @@ migrate = Migrate(app, db)
 
 # Import models after app creation to ensure db is initialized
 with app.app_context():
-    from app.models import User, Product, Order, OrderItem
+    from app.models import User, Product, Order, OrderItem, Cart, CartItem
 
 # Root route to avoid 404
 @app.route("/")

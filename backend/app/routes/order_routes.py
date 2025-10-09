@@ -6,6 +6,7 @@ from app.models.order_item import OrderItem
 from app.models.product import Product
 from app.models.user import User
 from app.utils.email_service import send_order_confirmation_email
+from sqlalchemy.orm import joinedload  # Add this import
 import traceback
 
 order_bp = Blueprint('orders', __name__)
@@ -17,7 +18,6 @@ def get_user_orders():
         return jsonify({'status': 'ok'}), 200
         
     try:
-        print("🔍 GET /api/orders endpoint hit")
         user_id_str = get_jwt_identity()
         
         # Convert string to integer
@@ -25,16 +25,16 @@ def get_user_orders():
             user_id = int(user_id_str)
         except (ValueError, TypeError):
             return jsonify({'error': 'Invalid user identity in token'}), 401
-            
-        print(f"🔍 User ID from JWT: {user_id}")
-        
+                    
         # Check if user exists
         user = User.query.get(user_id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
             
-        orders = Order.query.filter_by(user_id=user_id).order_by(Order.created_at.desc()).all()
-        print(f"🔍 Found {len(orders)} orders for user {user_id}")
+        # FIX: Use eager loading to avoid N+1 queries
+        orders = Order.query.options(
+            joinedload(Order.order_items)  # Eager load order_items
+        ).filter_by(user_id=user_id).order_by(Order.created_at.desc()).all()
         
         # Manually serialize to avoid relationship issues
         orders_data = []
@@ -45,8 +45,6 @@ def get_user_orders():
         return jsonify(orders_data)
         
     except Exception as e:
-        print(f"❌ Error in get_user_orders: {str(e)}")
-        print(f"🔍 Traceback: {traceback.format_exc()}")
         return jsonify({'error': 'Failed to fetch orders', 'details': str(e)}), 500
 
 @order_bp.route('/', methods=['POST'])
@@ -62,9 +60,6 @@ def create_order():
             return jsonify({'error': 'Invalid user identity in token'}), 401
             
         data = request.get_json()
-        
-        print(f"🔍 Creating order for user {user_id}")
-        print(f"🔍 Order data: {data}")
         
         # Validate required fields
         if not data or not data.get('items'):
@@ -147,23 +142,24 @@ def create_order():
         
         db.session.commit()
         
+        # FIX: Reload the order with eager loading to avoid N+1 in response
+        order_with_items = Order.query.options(
+            joinedload(Order.order_items)
+        ).get(order.id)
+        
         # Send confirmation email
         try:
             user = User.query.get(user_id)
             if user and user.email:
-                send_order_confirmation_email(user.email, order)
-                print(f"✅ Order confirmation email sent for order #{order.id}")
+                send_order_confirmation_email(user.email, order_with_items)
         except Exception as email_error:
-            print(f"⚠️ Failed to send email: {email_error}")
-            # Don't fail the order if email fails
+            pass
         
         return jsonify({
             'message': 'Order created successfully',
-            'order': order.to_dict()
+            'order': order_with_items.to_dict()
         }), 201
         
     except Exception as e:
         db.session.rollback()
-        print(f"❌ Error in create_order: {str(e)}")
-        print(f"🔍 Traceback: {traceback.format_exc()}")
         return jsonify({'error': str(e)}), 400

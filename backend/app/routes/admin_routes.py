@@ -5,9 +5,10 @@ from app.models.user import User
 from app.models.order import Order
 from app.utils.permissions import admin_required
 from app.schemas.product_schema import products_schema, product_schema
-from app.schemas.user_schema import users_schema, user_schema  # Add user_schema import
+from app.schemas.user_schema import users_schema, user_schema
 from app.schemas.order_schema import orders_schema
-from flask_jwt_extended import jwt_required, get_jwt_identity  # Add get_jwt_identity import
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy.orm import joinedload
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -103,7 +104,6 @@ def delete_product(product_id):
         
     except Exception as e:
         db.session.rollback()
-        print(f"❌ Error deleting product {product_id}: {str(e)}")
         return jsonify({'error': str(e)}), 400
 
 # User Management
@@ -123,11 +123,8 @@ def update_user(user_id):
         user = User.query.get_or_404(user_id)
         data = request.get_json()
         
-        print(f"🔍 Updating user {user_id} with data: {data}")  # Debug log
-        
         # Prevent admin from modifying their own admin status
         current_user_id = get_jwt_identity()
-        print(f"🔍 Current user ID: {current_user_id}, Target user ID: {user_id}")  # Debug log
         
         if int(current_user_id) == user_id and 'is_admin' in data:
             return jsonify({'error': 'Cannot modify your own admin status'}), 400
@@ -155,7 +152,6 @@ def update_user(user_id):
         
     except Exception as e:
         db.session.rollback()
-        print(f"❌ Error updating user {user_id}: {str(e)}")  # Debug log
         return jsonify({'error': str(e)}), 400
 
 @admin_bp.route('/users/<int:user_id>', methods=['DELETE'])
@@ -186,7 +182,6 @@ def delete_user(user_id):
         
     except Exception as e:
         db.session.rollback()
-        print(f"❌ Error deleting user {user_id}: {str(e)}")  # Debug log
         return jsonify({'error': str(e)}), 400
 
 # Order Management
@@ -194,7 +189,10 @@ def delete_user(user_id):
 @admin_required
 def get_all_orders():
     try:
-        orders = Order.query.order_by(Order.created_at.desc()).all()
+        # FIX: Use eager loading to avoid N+1 queries
+        orders = Order.query.options(
+            joinedload(Order.order_items)  # Eager load order_items
+        ).order_by(Order.created_at.desc()).all()
         
         # Manually serialize to avoid relationship issues
         orders_data = []
@@ -210,7 +208,11 @@ def get_all_orders():
 @admin_required
 def update_order_status(order_id):
     try:
-        order = Order.query.get_or_404(order_id)
+        # FIX: Use eager loading to avoid N+1 queries
+        order = Order.query.options(
+            joinedload(Order.order_items)
+        ).get_or_404(order_id)
+        
         data = request.get_json()
         
         if not data.get('status'):
@@ -248,5 +250,4 @@ def get_dashboard_stats():
         })
         
     except Exception as e:
-        print(f"❌ Error in get_dashboard_stats: {str(e)}")
         return jsonify({'error': str(e)}), 500

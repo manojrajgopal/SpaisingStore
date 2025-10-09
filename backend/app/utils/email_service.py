@@ -13,20 +13,12 @@ def send_async_email(app, msg):
             print(f"To: {msg['To']}")
             print(f"Subject: {msg['Subject']}")
             print(f"Body:\n{msg.get_payload()}")
-            print("=" * 50)
-            
-            # In production, you would actually send the email:
-            # import smtplib
-            # with smtplib.SMTP(current_app.config['MAIL_SERVER'], current_app.config['MAIL_PORT']) as server:
-            #     server.starttls()
-            #     server.login(current_app.config['MAIL_USERNAME'], current_app.config['MAIL_PASSWORD'])
-            #     server.send_message(msg)
+            print("=" * 50)         
                 
         except Exception as e:
             print(f"❌ Email sending failed: {str(e)}")
 
 def send_order_confirmation_email(user_email, order):
-    """Send order confirmation email with invoice"""
     try:
         # Create message
         msg = MIMEMultipart()
