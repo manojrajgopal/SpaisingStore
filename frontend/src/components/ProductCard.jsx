@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { addToCartBackend } from '../redux/slices/cartSlice';
 import './ProductCard.css';
 
 const ProductCard = ({ product }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
   const [isAdding, setIsAdding] = useState(false);
   const [showQuickView, setShowQuickView] = useState(false);
@@ -19,7 +21,9 @@ const ProductCard = ({ product }) => {
     return null;
   };
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (e) => {
+    e.stopPropagation(); // Prevent navigation when clicking cart button
+    
     if (!user) {
       alert('Please login to add items to cart');
       return;
@@ -37,12 +41,25 @@ const ProductCard = ({ product }) => {
     }
   };
 
+  const handleCardClick = () => {
+    navigate(`/products/${product.id}`);
+  };
+
+  const handleQuickViewClick = (e) => {
+    e.stopPropagation(); // Prevent card navigation when clicking quick view
+    setShowQuickView(true);
+  };
+
+  const handleModalClick = (e) => {
+    e.stopPropagation(); // Prevent card navigation when interacting with modal
+  };
+
   const isOutOfStock = product.stock_quantity === 0;
   const imageUrl = getImageUrl();
 
   return (
     <>
-      <div className="product-card">
+      <div className="product-card" onClick={handleCardClick} style={{cursor: 'pointer'}}>
         {/* Image Section */}
         <div className="card-image">
           {imageUrl ? (
@@ -84,7 +101,7 @@ const ProductCard = ({ product }) => {
           {/* Quick view button */}
           <button 
             className="quick-view-btn"
-            onClick={() => setShowQuickView(true)}
+            onClick={handleQuickViewClick}
           >
             <span>👁️ Quick View</span>
           </button>
@@ -145,7 +162,7 @@ const ProductCard = ({ product }) => {
       {/* Quick View Modal */}
       {showQuickView && (
         <div className="modal-overlay" onClick={() => setShowQuickView(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal" onClick={handleModalClick}>
             <div className="modal-header">
               <h2>Product Details</h2>
               <button className="close-btn" onClick={() => setShowQuickView(false)}>

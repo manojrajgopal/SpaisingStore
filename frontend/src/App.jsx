@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import Cart from './pages/Cart';
 import Orders from './pages/Orders';
 import Products from './pages/Products';
+import ProductDetails from './pages/ProductDetails';
 import PublicRoute from './routes/PublicRoute';
 import ProtectedRoute from './routes/ProtectedRoute';
 
@@ -60,6 +61,7 @@ function App() {
                   <Products />
                 </ProtectedRoute>
               } />
+              <Route path="/products/:id" element={<ProductDetails />} />
 
               {/* Admin Routes */}
               <Route path="/admin" element={
