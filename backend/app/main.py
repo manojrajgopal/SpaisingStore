@@ -2,8 +2,10 @@ from app import create_app, db
 from flask import Flask, jsonify
 from flask.cli import with_appcontext
 import click
+from flask_migrate import Migrate
 
 app = create_app()
+migrate = Migrate(app, db)
 
 # Import models after app creation to ensure db is initialized
 with app.app_context():
