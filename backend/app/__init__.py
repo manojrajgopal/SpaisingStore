@@ -2,7 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_jwt_extended import JWTManager
-from flask_mail import Mail
+# from flask_mail import Mail
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
@@ -10,7 +10,7 @@ import os
 db = SQLAlchemy()
 ma = Marshmallow()
 jwt = JWTManager()
-mail = Mail()
+# mail = Mail()
 
 def create_app():
     app = Flask(__name__)
@@ -24,11 +24,11 @@ def create_app():
     )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
-    app.config['MAIL_SERVER'] = os.getenv('EMAIL_HOST')
-    app.config['MAIL_PORT'] = int(os.getenv('EMAIL_PORT', 587))
-    app.config['MAIL_USE_TLS'] = True
-    app.config['MAIL_USERNAME'] = os.getenv('EMAIL_USER')
-    app.config['MAIL_PASSWORD'] = os.getenv('EMAIL_PASSWORD')
+    # app.config['MAIL_SERVER'] = os.getenv('EMAIL_HOST')
+    # app.config['MAIL_PORT'] = int(os.getenv('EMAIL_PORT', 587))
+    # app.config['MAIL_USE_TLS'] = True
+    # app.config['MAIL_USERNAME'] = os.getenv('EMAIL_USER')
+    # app.config['MAIL_PASSWORD'] = os.getenv('EMAIL_PASSWORD')
 
     # Initialize CORS - REMOVE the duplicate after_request middleware
     CORS(app, 
@@ -47,7 +47,7 @@ def create_app():
     db.init_app(app)
     ma.init_app(app)
     jwt.init_app(app)
-    mail.init_app(app)
+    # mail.init_app(app)
 
     @app.before_request
     def handle_options():

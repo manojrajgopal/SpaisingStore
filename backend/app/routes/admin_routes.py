@@ -91,6 +91,11 @@ def delete_product(product_id):
     try:
         product = Product.query.get_or_404(product_id)
         
+        # First, delete all related order items
+        from app.models.order_item import OrderItem
+        OrderItem.query.filter_by(product_id=product_id).delete()
+        
+        # Then delete the product
         db.session.delete(product)
         db.session.commit()
         
@@ -98,6 +103,7 @@ def delete_product(product_id):
         
     except Exception as e:
         db.session.rollback()
+        print(f"❌ Error deleting product {product_id}: {str(e)}")
         return jsonify({'error': str(e)}), 400
 
 # User Management

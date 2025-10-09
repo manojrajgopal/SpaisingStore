@@ -6,7 +6,9 @@ class ProductSchema(ma.SQLAlchemyAutoSchema):
         model = Product
         include_fk = True
     
-    image_url = ma.String(dump_only=True)
+    # Ensure both image fields are included
+    image_url = ma.String()
+    image_data = ma.String()
     
     def get_image_url(self, obj):
         return obj.get_image_url()

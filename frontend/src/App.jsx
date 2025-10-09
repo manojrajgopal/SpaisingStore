@@ -18,6 +18,8 @@ const AdminProducts = lazy(() => import('./pages/Admin/Products'));
 const AdminUsers = lazy(() => import('./pages/Admin/Users'));
 const AdminOrders = lazy(() => import('./pages/Admin/Orders'));
 
+import './App.css';
+
 function App() {
   return (
     <Provider store={store}>

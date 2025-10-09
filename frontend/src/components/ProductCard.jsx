@@ -1,12 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../redux/slices/cartSlice';
+import './ProductCard.css';
 
 const ProductCard = ({ product }) => {
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.auth);
   const [isAdding, setIsAdding] = useState(false);
   const [showQuickView, setShowQuickView] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const imageRef = useRef(null);
+
+  // Get the correct image URL - handle both URL and base64
+  const getProductImage = () => {
+    if (product.image_url && !imageError) {
+      return product.image_url;
+    }
+    if (product.image_data && !imageError) {
+      // If it's already a data URL, use it directly
+      if (product.image_data.startsWith('data:')) {
+        return product.image_data;
+      }
+      // Otherwise, assume it's base64 and format it
+      return `data:image/jpeg;base64,${product.image_data}`;
+    }
+    // Fallback placeholder - use a reliable placeholder service
+    return 'https://via.placeholder.com/300x200/667eea/ffffff?text=Product+Image';
+  };
+
+  const handleImageError = () => {
+    console.warn('Image failed to load for product:', product.name);
+    setImageError(true);
+  };
+
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+    setImageError(false);
+  };
 
   const handleAddToCart = async () => {
     if (!user) {
@@ -23,10 +54,10 @@ const ProductCard = ({ product }) => {
       
       // Success animation
       const button = document.activeElement;
-      button.style.transform = 'scale(0.95)';
+      button.classList.add('success-animation');
       setTimeout(() => {
-        button.style.transform = '';
-      }, 150);
+        button.classList.remove('success-animation');
+      }, 600);
     } catch (error) {
       console.error('Failed to add to cart:', error);
     } finally {
@@ -34,19 +65,26 @@ const ProductCard = ({ product }) => {
     }
   };
 
-  const isOutOfStock = product.stock === 0;
+  const isOutOfStock = product.stock_quantity === 0;
 
   return (
     <>
       <div className={`product-card ${isOutOfStock ? 'out-of-stock' : ''}`}>
         <div className="product-image-container">
           <img 
-            src={product.image || '/api/placeholder/300/200'} 
+            ref={imageRef}
+            src={getProductImage()} 
             alt={product.name}
-            onError={(e) => {
-              e.target.src = '/api/placeholder/300/200';
-            }}
+            className="product-image"
+            onError={handleImageError}
+            onLoad={handleImageLoad}
+            style={{ opacity: imageLoaded ? 1 : 0 }}
           />
+          {!imageLoaded && !imageError && (
+            <div className="image-loading-placeholder">
+              <div className="loading-spinner-small"></div>
+            </div>
+          )}
           {isOutOfStock && (
             <div className="out-of-stock-overlay">
               <span>Out of Stock</span>
@@ -58,27 +96,32 @@ const ProductCard = ({ product }) => {
               onClick={() => setShowQuickView(true)}
               title="Quick View"
             >
-              👁️
+              <span className="quick-view-icon">👁️</span>
             </button>
+          </div>
+          <div className="product-badge">
+            {product.stock_quantity < 10 && product.stock_quantity > 0 && (
+              <span className="low-stock-badge">Low Stock</span>
+            )}
           </div>
         </div>
         
         <div className="product-info">
-          <h3>{product.name}</h3>
+          <h3 className="product-title">{product.name}</h3>
           <p className="product-description">
             {product.description?.substring(0, 100)}...
           </p>
           <div className="product-meta">
             <span className="price">${product.price}</span>
-            <span className={`stock ${product.stock < 10 ? 'low-stock' : ''}`}>
-              {product.stock} in stock
+            <span className={`stock ${product.stock_quantity < 10 ? 'low-stock' : ''}`}>
+              {product.stock_quantity} in stock
             </span>
           </div>
           
           <button
             onClick={handleAddToCart}
             disabled={isAdding || isOutOfStock || !user}
-            className={`add-to-cart-btn ${isAdding ? 'adding' : ''}`}
+            className={`add-to-cart-btn ${isAdding ? 'adding' : ''} ${isOutOfStock ? 'out-of-stock' : ''}`}
           >
             {isAdding ? (
               <>
@@ -90,7 +133,10 @@ const ProductCard = ({ product }) => {
             ) : !user ? (
               'Login to Buy'
             ) : (
-              'Add to Cart'
+              <>
+                <span className="cart-icon">🛒</span>
+                Add to Cart
+              </>
             )}
           </button>
         </div>
@@ -111,8 +157,10 @@ const ProductCard = ({ product }) => {
               <div className="quick-view-content">
                 <div className="quick-view-image">
                   <img 
-                    src={product.image || '/api/placeholder/400/300'} 
+                    src={getProductImage()} 
                     alt={product.name}
+                    onError={handleImageError}
+                    onLoad={handleImageLoad}
                   />
                 </div>
                 
@@ -124,8 +172,8 @@ const ProductCard = ({ product }) => {
                   </p>
                   
                   <div className="stock-info">
-                    <span className={`stock-badge ${product.stock < 10 ? 'low' : 'high'}`}>
-                      {product.stock} in stock
+                    <span className={`stock-badge ${product.stock_quantity < 10 ? 'low' : 'high'}`}>
+                      {product.stock_quantity} in stock
                     </span>
                   </div>
                   

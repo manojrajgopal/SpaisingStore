@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAdminOrders } from '../../redux/slices/adminSlice';
+import './Orders.css';
 
 const Orders = () => {
   const dispatch = useDispatch();
@@ -21,113 +22,250 @@ const Orders = () => {
     }
   };
 
-  if (loading) return <div>Loading orders...</div>;
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'completed': return '✅';
+      case 'shipped': return '🚚';
+      case 'processing': return '⚙️';
+      case 'pending': return '⏳';
+      default: return '⏳';
+    }
+  };
+
+  if (loading) return (
+    <div className="admin-orders-page">
+      <div className="background-animation">
+        <div className="floating-shape shape-1"></div>
+        <div className="floating-shape shape-2"></div>
+        <div className="floating-shape shape-3"></div>
+        <div className="floating-shape shape-4"></div>
+      </div>
+      
+      <div className="orders-container">
+        <div className="loading-orders">
+          <div className="loading-spinner"></div>
+          <p>Loading orders...</p>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="admin-orders">
-      <h2>Order Management</h2>
+    <div className="admin-orders-page">
+      {/* Animated Background */}
+      <div className="background-animation">
+        <div className="floating-shape shape-1"></div>
+        <div className="floating-shape shape-2"></div>
+        <div className="floating-shape shape-3"></div>
+        <div className="floating-shape shape-4"></div>
+      </div>
       
-      <div className="orders-list">
-        {orders.map(order => (
-          <div key={order.id} className="order-card">
-            <div className="order-header">
-              <h4>Order #{order.id}</h4>
-              <span className={`status-badge ${getStatusColor(order.status)}`}>
-                {order.status}
-              </span>
+      <div className="orders-container">
+        {/* Header Section */}
+        <div className="orders-header">
+          <h1 className="orders-title">Order Management</h1>
+          <p className="orders-subtitle">Manage and track customer orders</p>
+          <div className="orders-stats">
+            <span className="stat">Total Orders: {orders.length}</span>
+          </div>
+        </div>
+
+        {/* Orders List */}
+        <div className="orders-content">
+          {orders.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">📦</div>
+              <h3>No Orders Found</h3>
+              <p>There are no orders to display at the moment.</p>
             </div>
-            
-            <div className="order-details">
-              <p><strong>Customer ID:</strong> {order.user_id}</p>
-              <p><strong>Total:</strong> ${order.total_amount}</p>
-              <p><strong>Date:</strong> {new Date(order.created_at).toLocaleString()}</p>
-              <p><strong>Shipping Address:</strong> {order.shipping_address}</p>
-            </div>
-            
-            <div className="order-items">
-              <h5>Items:</h5>
-              {order.order_items && order.order_items.map(item => (
-                <div key={item.id} className="order-item">
-                  <span>{item.product_name} x {item.quantity}</span>
-                  <span>${item.price} each</span>
+          ) : (
+            <div className="orders-grid">
+              {orders.map(order => (
+                <div key={order.id} className="order-card">
+                  {/* Order Header */}
+                  <div className="order-card-header">
+                    <div className="order-info">
+                      <h3 className="order-number">Order #{order.id}</h3>
+                      <div className="order-customer">
+                        <span className="customer-label">Customer ID:</span>
+                        <span className="customer-id">{order.user_id}</span>
+                      </div>
+                    </div>
+                    <div className="order-status">
+                      <span className={`status-badge ${getStatusColor(order.status)}`}>
+                        <span className="status-icon">{getStatusIcon(order.status)}</span>
+                        {order.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Order Details */}
+                  <div className="order-card-details">
+                    <div className="detail-row">
+                      <span className="detail-label">Total Amount:</span>
+                      <span className="detail-value">${order.total_amount}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="detail-label">Order Date:</span>
+                      <span className="detail-value">
+                        {new Date(order.created_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="detail-label">Shipping:</span>
+                      <span className="detail-value address">{order.shipping_address}</span>
+                    </div>
+                  </div>
+
+                  {/* Order Items Preview */}
+                  <div className="order-items-preview">
+                    <h4 className="items-title">Items ({order.order_items ? order.order_items.length : 0})</h4>
+                    <div className="items-list">
+                      {order.order_items && order.order_items.slice(0, 2).map(item => (
+                        <div key={item.id} className="preview-item">
+                          <span className="item-name">{item.product_name}</span>
+                          <span className="item-quantity">x{item.quantity}</span>
+                        </div>
+                      ))}
+                      {order.order_items && order.order_items.length > 2 && (
+                        <div className="more-items">+{order.order_items.length - 2} more items</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Order Actions */}
+                  <div className="order-card-actions">
+                    <button 
+                      onClick={() => setSelectedOrder(order)}
+                      className="view-details-btn"
+                    >
+                      <span className="btn-icon">👁️</span>
+                      View Details
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
-            
-            <div className="order-actions">
-              <button 
-                onClick={() => setSelectedOrder(order)}
-                className="btn-view"
-              >
-                View Details
-              </button>
+          )}
+        </div>
+
+        {/* Order Detail Modal */}
+        {selectedOrder && (
+          <div className="modal-overlay" onClick={() => setSelectedOrder(null)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="order-detail-modal">
+                {/* Modal Header */}
+                <div className="modal-header">
+                  <h2>Order Details</h2>
+                  <button 
+                    onClick={() => setSelectedOrder(null)}
+                    className="close-modal-btn"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Order Information */}
+                <div className="modal-body">
+                  <div className="order-detail-section">
+                    <h3>Order Information</h3>
+                    <div className="detail-grid">
+                      <div className="detail-item">
+                        <span className="detail-label">Order ID:</span>
+                        <span className="detail-value">#{selectedOrder.id}</span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Customer ID:</span>
+                        <span className="detail-value">{selectedOrder.user_id}</span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Status:</span>
+                        <span className={`status-badge ${getStatusColor(selectedOrder.status)}`}>
+                          <span className="status-icon">{getStatusIcon(selectedOrder.status)}</span>
+                          {selectedOrder.status}
+                        </span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Total Amount:</span>
+                        <span className="detail-value total">${selectedOrder.total_amount}</span>
+                      </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Order Date:</span>
+                        <span className="detail-value">
+                          {new Date(selectedOrder.created_at).toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Shipping Information */}
+                  <div className="order-detail-section">
+                    <h3>Shipping Information</h3>
+                    <div className="shipping-address">
+                      {selectedOrder.shipping_address}
+                    </div>
+                  </div>
+
+                  {/* Order Items */}
+                  <div className="order-detail-section">
+                    <h3>Order Items</h3>
+                    <div className="items-table-container">
+                      <table className="items-table">
+                        <thead>
+                          <tr>
+                            <th>Product Name</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Subtotal</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedOrder.order_items && selectedOrder.order_items.map(item => (
+                            <tr key={item.id}>
+                              <td className="product-name">{item.product_name}</td>
+                              <td className="quantity">{item.quantity}</td>
+                              <td className="price">${item.price}</td>
+                              <td className="subtotal">${(item.quantity * item.price).toFixed(2)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td colSpan="3" className="total-label">Total Amount:</td>
+                            <td className="total-amount">${selectedOrder.total_amount}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Actions */}
+                <div className="modal-actions">
+                  <button 
+                    onClick={() => setSelectedOrder(null)}
+                    className="close-btn"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        ))}
+        )}
       </div>
-
-      {orders.length === 0 && (
-        <div className="empty-state">
-          <p>No orders found.</p>
-        </div>
-      )}
-
-      {/* Order Detail Modal */}
-      {selectedOrder && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="order-detail-modal">
-              <h3>Order Details #{selectedOrder.id}</h3>
-              
-              <div className="order-info">
-                <p><strong>Customer ID:</strong> {selectedOrder.user_id}</p>
-                <p><strong>Status:</strong> 
-                  <span className={`status-badge ${getStatusColor(selectedOrder.status)}`}>
-                    {selectedOrder.status}
-                  </span>
-                </p>
-                <p><strong>Total Amount:</strong> ${selectedOrder.total_amount}</p>
-                <p><strong>Order Date:</strong> {new Date(selectedOrder.created_at).toLocaleString()}</p>
-                <p><strong>Shipping Address:</strong></p>
-                <p className="shipping-address">{selectedOrder.shipping_address}</p>
-              </div>
-
-              <div className="order-items-detail">
-                <h4>Order Items</h4>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Product</th>
-                      <th>Quantity</th>
-                      <th>Price</th>
-                      <th>Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedOrder.order_items && selectedOrder.order_items.map(item => (
-                      <tr key={item.id}>
-                        <td>{item.product_name}</td>
-                        <td>{item.quantity}</td>
-                        <td>${item.price}</td>
-                        <td>${(item.quantity * item.price).toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="modal-actions">
-                <button 
-                  onClick={() => setSelectedOrder(null)}
-                  className="btn-secondary"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

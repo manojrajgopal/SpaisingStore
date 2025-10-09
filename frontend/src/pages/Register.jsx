@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Input from '../components/Input';
+import './Register.css';
 
 const Register = () => {
   const { register, loading, error, isAuthenticated } = useAuth();
@@ -37,47 +38,106 @@ const Register = () => {
   };
 
   return (
-    <div className="auth-page">
-      <form onSubmit={handleSubmit} className="auth-form">
-        <h2>Register</h2>
-        
-        {error && <div className="error-alert">{error}</div>}
-        
-        <Input
-          ref={firstNameRef}
-          label="First Name"
-          required
-        />
-        
-        <Input
-          ref={lastNameRef}
-          label="Last Name"
-          required
-        />
-        
-        <Input
-          ref={emailRef}
-          label="Email"
-          type="email"
-          required
-        />
-        
-        <Input
-          ref={passwordRef}
-          label="Password"
-          type="password"
-          required
-          minLength="6"
-        />
-        
-        <button type="submit" disabled={loading}>
-          {loading ? 'Registering...' : 'Register'}
-        </button>
-        
-        <p>
-          Already have an account? <Link to="/login">Login here</Link>
-        </p>
-      </form>
+    <div className="register-page">
+      {/* Animated Background */}
+      <div className="background-animation">
+        <div className="floating-shape shape-1"></div>
+        <div className="floating-shape shape-2"></div>
+        <div className="floating-shape shape-3"></div>
+        <div className="floating-shape shape-4"></div>
+      </div>
+      
+      {/* Centered Register Container */}
+      <div className="register-container">
+        <div className="register-card">
+          {/* Header Section */}
+          <div className="register-header">
+            <div className="logo">
+              <span className="logo-icon">👗</span>
+              <span className="logo-text">Spaising's</span>
+            </div>
+            <h1 className="register-title">Create Account</h1>
+            <p className="register-subtitle">Join us and discover amazing fashion</p>
+          </div>
+
+          {/* Register Form */}
+          <form onSubmit={handleSubmit} className="register-form">
+            {error && (
+              <div className="error-alert">
+                <span className="error-icon">⚠️</span>
+                {error}
+              </div>
+            )}
+            
+            <div className="name-fields">
+              <div className="form-group half-width">
+                <Input
+                  ref={firstNameRef}
+                  label="First Name"
+                  required
+                />
+              </div>
+              <div className="form-group half-width">
+                <Input
+                  ref={lastNameRef}
+                  label="Last Name"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="form-group">
+              <Input
+                ref={emailRef}
+                label="Email Address"
+                type="email"
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <Input
+                ref={passwordRef}
+                label="Password"
+                type="password"
+                required
+                minLength="6"
+              />
+              <div className="password-hint">
+                Must be at least 6 characters long
+              </div>
+            </div>
+            
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="register-button"
+            >
+              {loading ? (
+                <>
+                  <div className="button-spinner"></div>
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  <span className="button-icon">✨</span>
+                  Create Account
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Footer Section */}
+          <div className="register-footer">
+            <p className="login-link">
+              Already have an account?{' '}
+              <Link to="/login" className="login-text">
+                Sign in here
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
