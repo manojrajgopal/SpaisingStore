@@ -14,7 +14,7 @@ const ShippingAddressForm = ({
     city: '',
     state: '',
     postal_code: '',
-    country: 'United States',
+    country: 'India',
     phone_number: '',
     is_default: false
   });
@@ -30,7 +30,7 @@ const ShippingAddressForm = ({
         city: address.city || '',
         state: address.state || '',
         postal_code: address.postal_code || '',
-        country: address.country || 'United States',
+        country: address.country || 'India',
         phone_number: address.phone_number || '',
         is_default: address.is_default || false
       });
@@ -164,6 +164,7 @@ const ShippingAddressForm = ({
               onChange={handleChange}
               className={errors.country ? 'error' : ''}
             >
+              <option value="India">India</option>
               <option value="United States">United States</option>
               <option value="Canada">Canada</option>
               <option value="United Kingdom">United Kingdom</option>

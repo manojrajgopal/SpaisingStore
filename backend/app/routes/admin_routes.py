@@ -204,6 +204,18 @@ def get_all_orders():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@admin_bp.route('/orders/<int:order_id>', methods=['GET'])
+@admin_required
+def get_order_detail(order_id):
+    try:
+        order = Order.query.options(
+            joinedload(Order.order_items)
+        ).get_or_404(order_id)
+        
+        return jsonify(order.to_dict())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
 @admin_bp.route('/orders/<int:order_id>/status', methods=['PUT'])
 @admin_required
 def update_order_status(order_id):

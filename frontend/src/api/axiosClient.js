@@ -14,6 +14,10 @@ axiosClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Log request for debugging
+    console.log('Making API request:', config.method?.toUpperCase(), config.url);
+    
     return config;
   },
   (error) => {
@@ -23,8 +27,13 @@ axiosClient.interceptors.request.use(
 
 // Response interceptor to handle errors
 axiosClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API response success:', response.status, response.config.url);
+    return response;
+  },
   (error) => {
+    console.log('API response error:', error.response?.status, error.config?.url, error.message);
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('access_token');
       localStorage.removeItem('user');

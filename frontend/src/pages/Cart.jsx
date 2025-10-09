@@ -13,7 +13,7 @@ import './Cart.css';
 
 const Cart = () => {
   const { items, totalAmount, loading } = useSelector(state => state.cart);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [updatingItems, setUpdatingItems] = useState({});
@@ -148,7 +148,6 @@ const Cart = () => {
 
   return (
     <div className="cart-page">
-      {/* Animated Background */}
       <div className="background-animation">
         <div className="floating-shape shape-1"></div>
         <div className="floating-shape shape-2"></div>
@@ -158,78 +157,78 @@ const Cart = () => {
       
       <div className="cart-container">
         <div className="cart-card">
-          {/* Header */}
           <div className="cart-header">
             <h1 className="cart-title">Your Shopping Cart</h1>
             <p className="cart-subtitle">{items.length} item{items.length !== 1 ? 's' : ''} in your cart</p>
           </div>
 
-          {/* Cart Items */}
           <div className="cart-items">
-            {items.map(item => (
-              <div key={item.id} className="cart-item">
-                <div className="item-image">
-                  {item.image_url ? (
-                    <img src={item.image_url} alt={item.name} className="item-image-preview" />
-                  ) : (
-                    <div className="image-placeholder">👗</div>
-                  )}
-                </div>
-                
-                <div className="item-details">
-                  <h3 className="item-name">{item.name}</h3>
-                  <p className="item-price">${item.price}</p>
+            {items.map(item => {
+              const product = item.product || {};
+              return (
+                <div key={item.id} className="cart-item">
+                  <div className="item-image">
+                    {product.image_url ? (
+                      <img src={product.image_url} alt={product.name} className="item-image-preview" />
+                    ) : (
+                      <div className="image-placeholder">👗</div>
+                    )}
+                  </div>
                   
-                  <div className="item-controls">
-                    <div className="quantity-controls">
-                      <label className="quantity-label">Quantity:</label>
-                      <div className="quantity-input-group">
-                        <button
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                          disabled={item.quantity <= 1 || updatingItems[item.id]}
-                          className="quantity-btn"
-                        >
-                          -
-                        </button>
-                        <input
-                          type="number"
-                          value={item.quantity}
-                          onChange={(e) => handleUpdateQuantity(item.id, parseInt(e.target.value) || 1)}
-                          min="1"
-                          max={item.available_stock}
-                          className="quantity-input"
-                          disabled={updatingItems[item.id]}
-                        />
-                        <button
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                          disabled={item.quantity >= item.available_stock || updatingItems[item.id]}
-                          className="quantity-btn"
-                        >
-                          +
-                        </button>
-                      </div>
-                      {updatingItems[item.id] && <span className="updating-text">Updating...</span>}
-                    </div>
+                  <div className="item-details">
+                    <h3 className="item-name">{product.name}</h3>
+                    <p className="item-price">${product.price}</p>
                     
-                    <button 
-                      onClick={() => handleRemoveFromCart(item.id)}
-                      className="remove-btn"
-                      disabled={updatingItems[item.id]}
-                    >
-                      <span className="remove-icon">🗑️</span>
-                      Remove
-                    </button>
+                    <div className="item-controls">
+                      <div className="quantity-controls">
+                        <label className="quantity-label">Quantity:</label>
+                        <div className="quantity-input-group">
+                          <button
+                            onClick={() => handleUpdateQuantity(item.product_id, item.quantity - 1)}
+                            disabled={item.quantity <= 1 || updatingItems[item.product_id]}
+                            className="quantity-btn"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => handleUpdateQuantity(item.product_id, parseInt(e.target.value) || 1)}
+                            min="1"
+                            max={product.available_stock || product.stock_quantity || 1}
+                            className="quantity-input"
+                            disabled={updatingItems[item.product_id]}
+                          />
+                          <button
+                            onClick={() => handleUpdateQuantity(item.product_id, item.quantity + 1)}
+                            disabled={item.quantity >= (product.available_stock || product.stock_quantity) || updatingItems[item.product_id]}
+                            className="quantity-btn"
+                          >
+                            +
+                          </button>
+                        </div>
+                        {updatingItems[item.product_id] && <span className="updating-text">Updating...</span>}
+                      </div>
+                      
+                      <button 
+                        onClick={() => handleRemoveFromCart(item.product_id)}
+                        className="remove-btn"
+                        disabled={updatingItems[item.product_id]}
+                      >
+                        <span className="remove-icon">🗑️</span>
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="item-total">
+                    <span className="total-amount">${(product.price * item.quantity).toFixed(2)}</span>
                   </div>
                 </div>
-                
-                <div className="item-total">
-                  <span className="total-amount">${(item.price * item.quantity).toFixed(2)}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          {/* Cart Summary */}
           <div className="cart-summary">
             <div className="summary-row">
               <span className="summary-label">Subtotal:</span>
@@ -246,7 +245,6 @@ const Cart = () => {
             </div>
           </div>
 
-          {/* Checkout Section */}
           <div className="checkout-section">
             <button 
               onClick={() => setShowCheckout(true)}

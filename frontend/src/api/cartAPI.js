@@ -8,11 +8,11 @@ export const cartAPI = {
   addToCart: (productId, quantity = 1) => 
     axiosClient.post('/cart/add', { product_id: productId, quantity }),
   
-  // Update cart item quantity
+  // Update cart item quantity - FIXED: Ensure consistent endpoint
   updateCartItem: (productId, quantity) => 
     axiosClient.put('/cart/update', { product_id: productId, quantity }),
   
-  // Remove item from cart
+  // Remove item from cart - FIXED: Ensure consistent endpoint
   removeFromCart: (productId) => 
     axiosClient.delete(`/cart/remove/${productId}`),
   

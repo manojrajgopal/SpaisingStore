@@ -102,7 +102,7 @@ const Checkout = ({ onBack, onSuccess }) => {
       
       const orderData = {
         items: items.map(item => ({
-          product_id: item.id,
+          product_id: item.product.id,
           quantity: item.quantity
         })),
         shipping_address: selectedAddress // Send the full address object
@@ -290,9 +290,9 @@ const Checkout = ({ onBack, onSuccess }) => {
           <h4>Order Items</h4>
           {items.map(item => (
             <div key={item.id} className="review-item">
-              <span className="item-name">{item.name}</span>
+              <span className="item-name">{item.product.name}</span>
               <span className="item-quantity">x{item.quantity}</span>
-              <span className="item-price">${(item.price * item.quantity).toFixed(2)}</span>
+              <span className="item-price">${(item.product.price * item.quantity).toFixed(2)}</span>
             </div>
           ))}
         </div>

@@ -31,7 +31,7 @@ export const updateCartItemBackend = createAsyncThunk(
   async ({ productId, quantity }, { rejectWithValue }) => {
     try {
       const response = await cartAPI.updateCartItem(productId, quantity);
-      return { productId, quantity, ...response.data };
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Failed to update cart');
     }
@@ -42,8 +42,8 @@ export const removeFromCartBackend = createAsyncThunk(
   'cart/removeFromCartBackend',
   async (productId, { rejectWithValue }) => {
     try {
-      await cartAPI.removeFromCart(productId);
-      return productId;
+      const response = await cartAPI.removeFromCart(productId);
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Failed to remove from cart');
     }
@@ -54,8 +54,8 @@ export const clearCartBackend = createAsyncThunk(
   'cart/clearCartBackend',
   async (_, { rejectWithValue }) => {
     try {
-      await cartAPI.clearCart();
-      return [];
+      const response = await cartAPI.clearCart();
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Failed to clear cart');
     }
@@ -72,48 +72,13 @@ const cartSlice = createSlice({
     error: null,
   },
   reducers: {
-    // Local actions for immediate UI response
-    addToCartLocal: (state, action) => {
-      const existingItem = state.items.find(item => item.id === action.payload.id);
-      
-      if (existingItem) {
-        existingItem.quantity += 1;
-      } else {
-        state.items.push({ ...action.payload, quantity: 1 });
-      }
-      state.totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
-      state.totalAmount = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    clearError: (state) => {
+      state.error = null;
     },
-    
-    removeFromCartLocal: (state, action) => {
-      state.items = state.items.filter(item => item.id !== action.payload);
-      state.totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
-      state.totalAmount = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    },
-    
-    updateQuantityLocal: (state, action) => {
-      const item = state.items.find(item => item.id === action.payload.id);
-      if (item) {
-        item.quantity = action.payload.quantity;
-      }
-      state.totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
-      state.totalAmount = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    },
-    
     clearCartLocal: (state) => {
       state.items = [];
       state.totalItems = 0;
       state.totalAmount = 0;
-    },
-    
-    setCart: (state, action) => {
-      state.items = action.payload.cart || action.payload.items || [];
-      state.totalItems = action.payload.total_items || action.payload.totalItems || 0;
-      state.totalAmount = action.payload.total_amount || action.payload.totalAmount || 0;
-    },
-    
-    clearError: (state) => {
-      state.error = null;
     },
   },
   extraReducers: (builder) => {
@@ -125,9 +90,9 @@ const cartSlice = createSlice({
       })
       .addCase(fetchCart.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload.cart || action.payload.items || [];
-        state.totalItems = action.payload.total_items || action.payload.totalItems || 0;
-        state.totalAmount = action.payload.total_amount || action.payload.totalAmount || 0;
+        state.items = action.payload.items || [];
+        state.totalItems = action.payload.total_items || 0;
+        state.totalAmount = action.payload.total_amount || 0;
       })
       .addCase(fetchCart.rejected, (state, action) => {
         state.loading = false;
@@ -141,51 +106,68 @@ const cartSlice = createSlice({
       })
       .addCase(addToCartBackend.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload.cart || action.payload.items || state.items;
-        state.totalItems = action.payload.total_items || action.payload.totalItems || state.totalItems;
-        state.totalAmount = action.payload.total_amount || action.payload.totalAmount || state.totalAmount;
+        state.items = action.payload.cart?.items || action.payload.items || [];
+        state.totalItems = action.payload.cart?.total_items || action.payload.total_items || 0;
+        state.totalAmount = action.payload.cart?.total_amount || action.payload.total_amount || 0;
       })
       .addCase(addToCartBackend.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.error || action.payload || 'Failed to add to cart';
       })
       
-      // Update Cart Item - FIXED: Properly update the quantity in the state
+      // Update Cart Item
+      .addCase(updateCartItemBackend.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(updateCartItemBackend.fulfilled, (state, action) => {
-        const { productId, quantity } = action.payload;
-        const item = state.items.find(item => item.id === productId || item.product_id === productId);
-        if (item) {
-          item.quantity = quantity;
-        }
-        // Recalculate totals
-        state.totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
-        state.totalAmount = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        state.loading = false;
+        state.items = action.payload.cart?.items || action.payload.items || [];
+        state.totalItems = action.payload.cart?.total_items || action.payload.total_items || 0;
+        state.totalAmount = action.payload.cart?.total_amount || action.payload.total_amount || 0;
+      })
+      .addCase(updateCartItemBackend.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.error || action.payload || 'Failed to update cart';
       })
       
-      // Remove from Cart - FIXED: Properly remove item from state
+      // Remove from Cart
+      .addCase(removeFromCartBackend.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(removeFromCartBackend.fulfilled, (state, action) => {
-        const productId = action.payload;
-        state.items = state.items.filter(item => item.id !== productId && item.product_id !== productId);
-        state.totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
-        state.totalAmount = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        state.loading = false;
+        state.items = action.payload.cart?.items || action.payload.items || [];
+        state.totalItems = action.payload.cart?.total_items || action.payload.total_items || 0;
+        state.totalAmount = action.payload.cart?.total_amount || action.payload.total_amount || 0;
+      })
+      .addCase(removeFromCartBackend.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.error || action.payload || 'Failed to remove from cart';
       })
       
       // Clear Cart
-      .addCase(clearCartBackend.fulfilled, (state) => {
+      .addCase(clearCartBackend.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(clearCartBackend.fulfilled, (state, action) => {
+        state.loading = false;
         state.items = [];
         state.totalItems = 0;
         state.totalAmount = 0;
+      })
+      .addCase(clearCartBackend.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.error || action.payload || 'Failed to clear cart';
       });
   },
 });
 
 export const { 
-  addToCartLocal, 
-  removeFromCartLocal, 
-  updateQuantityLocal, 
-  clearCartLocal,
-  setCart,
-  clearError 
+  clearError,
+  clearCartLocal
 } = cartSlice.actions;
 
 export default cartSlice.reducer;
