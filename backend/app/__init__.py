@@ -93,13 +93,15 @@ def create_app():
     from app.routes.order_routes import order_bp
     from app.routes.admin_routes import admin_bp
     from app.routes.cart_routes import cart_bp
-
+    from app.routes.shipping_routes import shipping_bp
+    
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(product_bp, url_prefix='/api/products')
     app.register_blueprint(order_bp, url_prefix='/api/orders')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
     app.register_blueprint(cart_bp, url_prefix='/api/cart')
-
+    app.register_blueprint(shipping_bp, url_prefix='/api/shipping')
+    
     # -----------------------------
     # Error Handlers
     # -----------------------------

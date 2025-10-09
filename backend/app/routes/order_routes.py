@@ -1,13 +1,11 @@
-from flask import Blueprint, request, jsonify, g
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
 from app.models.order import Order
 from app.models.order_item import OrderItem
 from app.models.product import Product
 from app.models.user import User
-from app.utils.permissions import optional_jwt
 from app.utils.email_service import send_order_confirmation_email
-from app.schemas.order_schema import orders_schema, order_schema
 import traceback
 
 order_bp = Blueprint('orders', __name__)
@@ -68,13 +66,35 @@ def create_order():
         print(f"🔍 Creating order for user {user_id}")
         print(f"🔍 Order data: {data}")
         
-        # Rest of the function remains the same...
         # Validate required fields
         if not data or not data.get('items'):
             return jsonify({'error': 'Order items are required'}), 422
             
         if not data.get('shipping_address'):
             return jsonify({'error': 'Shipping address is required'}), 422
+        
+        # Validate shipping address structure
+        shipping_address = data.get('shipping_address')
+        if isinstance(shipping_address, dict):
+            # New format with address object
+            required_address_fields = ['full_name', 'address_line1', 'city', 'state', 'postal_code', 'country']
+            for field in required_address_fields:
+                if not shipping_address.get(field):
+                    return jsonify({'error': f'Shipping address {field} is required'}), 422
+            
+            # Format the address
+            formatted_address = f"{shipping_address['full_name']}, {shipping_address['address_line1']}"
+            if shipping_address.get('address_line2'):
+                formatted_address += f", {shipping_address['address_line2']}"
+            formatted_address += f", {shipping_address['city']}, {shipping_address['state']} {shipping_address['postal_code']}, {shipping_address['country']}"
+            
+            if shipping_address.get('phone_number'):
+                formatted_address += f", Phone: {shipping_address['phone_number']}"
+                
+            shipping_address_str = formatted_address
+        else:
+            # Legacy string format
+            shipping_address_str = shipping_address
         
         # Start transaction
         db.session.begin_nested()
@@ -98,14 +118,15 @@ def create_order():
             order_items.append({
                 'product': product,
                 'quantity': item['quantity'],
-                'price': product.price
+                'price': product.price,
+                'product_name': product.name
             })
         
         # Create order
         order = Order(
             user_id=user_id,
             total_amount=total_amount,
-            shipping_address=data['shipping_address']
+            shipping_address=shipping_address_str
         )
         db.session.add(order)
         db.session.flush()  # Get order ID
@@ -116,7 +137,8 @@ def create_order():
                 order_id=order.id,
                 product_id=item_data['product'].id,
                 quantity=item_data['quantity'],
-                price=item_data['price']
+                price=item_data['price'],
+                product_name=item_data['product_name']
             )
             db.session.add(order_item)
             
@@ -125,13 +147,15 @@ def create_order():
         
         db.session.commit()
         
-        # Send confirmation email (optional)
+        # Send confirmation email
         try:
             user = User.query.get(user_id)
             if user and user.email:
                 send_order_confirmation_email(user.email, order)
+                print(f"✅ Order confirmation email sent for order #{order.id}")
         except Exception as email_error:
             print(f"⚠️ Failed to send email: {email_error}")
+            # Don't fail the order if email fails
         
         return jsonify({
             'message': 'Order created successfully',

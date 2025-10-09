@@ -8,7 +8,7 @@ import {
 } from '../redux/slices/cartSlice';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { orderAPI } from '../api/orderAPI';
+import Checkout from '../components/Checkout';
 import './Cart.css';
 
 const Cart = () => {
@@ -17,6 +17,7 @@ const Cart = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [updatingItems, setUpdatingItems] = useState({});
+  const [showCheckout, setShowCheckout] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -45,32 +46,9 @@ const Cart = () => {
     }
   };
 
-  const handleCheckout = async () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
-    if (items.length === 0) {
-      alert('Your cart is empty');
-      return;
-    }
-
-    try {
-      const orderData = {
-        items: items.map(item => ({
-          product_id: item.id,
-          quantity: item.quantity
-        })),
-        shipping_address: `${user?.first_name} ${user?.last_name}, 123 Main St, City, State, ZIP` // In real app, get from form
-      };
-
-      await orderAPI.create(orderData);
-      await dispatch(clearCartBackend()).unwrap();
-      navigate('/orders');
-    } catch (error) {
-      alert('Checkout failed: ' + (error.response?.data?.error || error.message));
-    }
+  const handleCheckoutSuccess = () => {
+    setShowCheckout(false);
+    navigate('/orders');
   };
 
   if (!isAuthenticated) {
@@ -117,7 +95,7 @@ const Cart = () => {
     );
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !showCheckout) {
     return (
       <div className="cart-page">
         <div className="background-animation">
@@ -140,6 +118,28 @@ const Cart = () => {
                 Continue Shopping
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (showCheckout) {
+    return (
+      <div className="cart-page">
+        <div className="background-animation">
+          <div className="floating-shape shape-1"></div>
+          <div className="floating-shape shape-2"></div>
+          <div className="floating-shape shape-3"></div>
+          <div className="floating-shape shape-4"></div>
+        </div>
+        
+        <div className="cart-container">
+          <div className="cart-card">
+            <Checkout 
+              onBack={() => setShowCheckout(false)}
+              onSuccess={handleCheckoutSuccess}
+            />
           </div>
         </div>
       </div>
@@ -249,12 +249,12 @@ const Cart = () => {
           {/* Checkout Section */}
           <div className="checkout-section">
             <button 
-              onClick={handleCheckout} 
+              onClick={() => setShowCheckout(true)}
               className="checkout-btn"
               disabled={loading}
             >
               <span className="checkout-icon">💳</span>
-              {loading ? 'Processing...' : 'Proceed to Checkout'}
+              Proceed to Checkout
             </button>
             
             <button 

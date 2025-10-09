@@ -8,7 +8,8 @@ class OrderItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False, index=True)
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float, nullable=False)
-    
+    product_name = db.Column(db.String(255), nullable=False)
+
     def to_dict(self):
         from app.models.product import Product  # Import here to avoid circular imports
         
