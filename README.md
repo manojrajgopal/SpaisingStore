@@ -6,9 +6,9 @@ SpaisingStore is a complete e-commerce platform built with modern web technologi
 
 ---
 
-Frontend: http://localhost:5173
-Backend API: http://localhost:5000/api
-GitHub: https://github.com/manojrajgopal/SpaisingStore
+- **Frontend:** [http://localhost:5173](http://localhost:5173)  
+- **Backend API:** [http://localhost:5000/api](http://localhost:5000/api)  
+- **GitHub:** [![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/manojrajgopal/SpaisingStore)
 
 ---
 
@@ -64,19 +64,36 @@ cd SpaisingStore
 Create virtual environment and activate
 ```
 
+Option 1: Using Python venv
 ```bash
+# Create virtual environment
 python -m venv venv
-venv\Scripts\activate  # Windows
-source venv/bin/activate  # Mac/Linux
-Install dependencies
+
+# Activate environment
+venv\Scripts\activate      # Windows
+# source venv/bin/activate  # Mac/Linux
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
+Option 2: Using Conda
 ```bash
+# Create Conda environment
+conda create -n SpaisingStore python=3.11 -y
+
+# Activate environment
+conda activate SpaisingStore
+
+# Install dependencies
 pip install -r requirements.txt
+```
+
 Environment Configuration
 Create .env file in backend root:
 
-.env
+```bash
+# .env
 FLASK_ENV=development
 SECRET_KEY=your-secret-key
 MYSQL_HOST=localhost
@@ -87,20 +104,11 @@ JWT_SECRET_KEY=your-jwt-secret
 SMTP_SERVER=smtp.gmail.com
 SMTP_PORT=587
 EMAIL_ADDRESS=your-email@gmail.com
-Database Setup
-```
-
-```bash
-# Initialize database
-flask --app app.main init-db
-
-# Run migrations
-flask db migrate -m "Initial migration"
-flask db upgrade
-
-# Create admin user
-flask --app app.main create-admin
-Run Backend
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=
+GOOGLE_REFRESH_TOKEN=
+GOOGLE_ACCESS_TOKEN=
 ```
 
 ```bash
@@ -111,9 +119,23 @@ flask --app app.main --debug run
 
 # View available routes
 flask routes
-Frontend Setup
-Navigate to frontend directory
 ```
+
+Database Setup:
+```bash
+# Initialize database
+flask --app app.main init-db
+
+# Run migrations
+flask db migrate -m "Initial migration"
+flask db upgrade
+
+# Create admin user
+flask --app app.main create-admin
+```
+
+### Frontend Setup
+Navigate to frontend directory
 
 ```bash
 cd frontend
@@ -122,13 +144,17 @@ Install dependencies
 
 ```bash
 npm install
-Environment Configuration
-Create .env file in frontend root:
-
-env
-VITE_API_BASE_URL=http://localhost:5000/api
-Run Frontend
 ```
+
+Environment Configuration
+Create `.env` file in frontend root:
+
+```bash
+# .env
+VITE_API_BASE_URL=http://localhost:5000/api
+```
+
+Run Frontend:
 
 ```bash
 # Development server
@@ -139,10 +165,10 @@ npm run build
 
 # Preview production build
 npm run preview
-🏃‍♂️ Running the Application
-Backend Commands
 ```
 
+🏃‍♂️ Running the Application
+Backend Commands
 ```bash
 # Development
 python.exe -m app.main
@@ -155,8 +181,9 @@ flask --app app.main create-admin
 flask db migrate -m "Message"
 flask db upgrade
 flask routes
-Frontend Commands
 ```
+
+Frontend Commands
 ```bash
 # Development
 npm run dev
@@ -186,11 +213,14 @@ npm run preview
 - GET /api/products/{id} - Get product details
 - POST /api/admin/products - Create product (Admin)
 - PUT /api/admin/products/{id} - Update product (Admin)
+- DELETE /api/admin/products/{id} - Delete product (Admin)
 
 ### 🛒 Cart
 - GET /api/cart - Get user's cart
 - POST /api/cart/add - Add item to cart
 - DELETE /api/cart/remove/{id} - Remove from cart
+- PUT /api/cart/update - Update from cart
+- DELETE /api/cart/clear - Clear cart
 
 ### 📦 Orders
 - GET /api/orders - Get user's orders
@@ -200,7 +230,8 @@ npm run preview
 - GET /api/admin/users - Get all users
 - GET /api/admin/orders - Get all orders
 - GET /api/admin/stats - Get dashboard stats
-
+- PUT /api/admin/orders/1/status - Update order status
+- PUT /api/admin/users/{id} - Update user details and auth
 ---
 
 ## 🧪 Testing
@@ -224,12 +255,15 @@ npm run test:coverage
 SpaisingStore/
 ├── backend/
 │   ├── app/
+│   │   ├── middleware/      # Middleware
 │   │   ├── models/          # Database models
 │   │   ├── routes/          # API routes
 │   │   ├── schemas/         # Marshmallow schemas
-│   │   └── tests/           # Test suite
-│   ├── migrations/          # Database migrations
-│   └── main.py             # Application entry point
+│   │   ├── tests/           # Test suite
+│   │   ├── utils/           # Utils
+│   │   └── main.py          # Application entry point
+│   └── migrations/          # Database migrations
+│
 ├── frontend/
 │   ├── src/
 │   │   ├── components/      # React components
@@ -237,6 +271,7 @@ SpaisingStore/
 │   │   ├── hooks/          # Custom React hooks
 │   │   ├── redux/          # State management
 │   │   ├── api/            # API configuration
+│   │   ├── routes/         # Protected/Public Route
 │   │   └── tests/          # Test files
 │   └── package.json
 ```
