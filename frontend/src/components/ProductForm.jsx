@@ -65,11 +65,11 @@ const ProductForm = ({ product, onSubmit, onCancel }) => {
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size (max 20MB)
+    if (file.size > 20 * 1024 * 1024) {
       setErrors(prev => ({ 
         ...prev, 
-        image: 'Image size should be less than 5MB' 
+        image: 'Image size should be less than 20MB' 
       }));
       return;
     }

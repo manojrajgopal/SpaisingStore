@@ -1,4 +1,5 @@
 from app import db
+from sqlalchemy.dialects.mysql import LONGTEXT
 
 class Product(db.Model):
     __tablename__ = 'products'
@@ -8,7 +9,7 @@ class Product(db.Model):
     description = db.Column(db.Text)
     price = db.Column(db.Float, nullable=False)
     stock_quantity = db.Column(db.Integer, nullable=False, default=0)
-    image_data = db.Column(db.Text)  # Store base64 image data
+    image_data = db.Column(LONGTEXT)  # Store base64 image data
     image_url = db.Column(db.String(255))  # Or store external URL
     category = db.Column(db.String(50))  # Add category field
     created_at = db.Column(db.DateTime, server_default=db.func.now())

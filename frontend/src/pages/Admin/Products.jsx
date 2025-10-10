@@ -72,7 +72,10 @@ const Products = () => {
       await dispatch(createAdminProduct(productData)).unwrap();
       setShowForm(false);
     } catch (error) {
-      alert('Failed to create product: ' + error.message);
+      // Proper error handling to show actual backend error
+      const errorMessage = error.payload?.error || error.message || 'Unknown error occurred';
+      alert('Failed to create product: ' + errorMessage);
+      console.error('Product creation error:', error);
     }
   };
 
@@ -217,12 +220,12 @@ const Products = () => {
                             <span className="price">${product.price}</span>
                           </td>
                           <td className="stock-cell">
-                            <span 
+                            {/* <span 
                               className={`stock-badge ${isInStock ? 'in-stock' : 'out-of-stock'}`}
                               title={`Stock quantity: ${stockQuantity}`}
                             >
                               {isInStock ? `${stockQuantity} in stock` : 'Out of stock'}
-                            </span>
+                            </span> */}
                             {/* Debug display - remove in production */}
                             <div style={{fontSize: '10px', color: '#666', marginTop: '4px'}}>
                               ID: {product.id} | Raw: {product.stock_quantity}
